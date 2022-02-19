@@ -4,8 +4,12 @@
 scrapy shell -s USER_AGENT='Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like Gecko' 'https://movie.douban.com/subject/34447553/'
 
 
+scrapy shell -s USER_AGENT='Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like Gecko' 'https://movie.douban.com/subject/27203644/?from=showing'
+
 电影名：
 response.xpath('//span[@property="v:itemreviewed"]/text()').get()
+
+
 年份：
 response.xpath('//span[@class="year"]/text()').get()
 
@@ -43,3 +47,94 @@ response.xpath('//strong[@class="ll rating_num"]/text()').get()
 
 简介(需处理换行符)：
 response.xpath('//span[@property="v:summary"]/text()').get()
+
+电影(movie)：
+
+|  字段   | 类型  | 说明  |
+|  ----  | ---- | ---- |
+| id | INTEGER | 电影id, 对应豆瓣上的id |
+| name | VARCHAR(40) | 电影名 |
+| releaseDate | DATE | 电影日期 |
+| language | VARCHAR(20) | 语言 |
+| length | REAL | 时长 |
+| otherNames | VARCHAR(100) | 别名 |
+| score | INT | 评分 |
+| synopsis | TEXT | 简介 |
+| doubanUrl | VARCHAR(200) | 对应豆瓣的url |
+| filePath | VARCHAR(200) | 电影文件路径 |
+| fileUrl | VARCHAR(200) | 电影文件路径 |
+| posterUrl | VARCHAR(200) | 电影海报路径 |
+| iconUrl | VARCHAR(200) | 电影图标路径 |
+| createDate | DATETIME | 电影数据创建 |
+| lastWatchDate | DATETIME | 最近观看时间 |
+| lastWatchUser | VARCHAR(40) | 最近观看人 |
+
+导演(director)：
+
+|  字段   | 类型  | 说明  |
+|  ----  | ---- | ---- |
+| id | INTEGER |  |
+| name_cn | VARCHAR(40) | 中文名 |
+| name_en | VARCHAR(40) | 英文名 |
+| gender | BOOLEAN | 性别 |
+| birthday | DATE | 出生日期 |
+| leaveday | DATE | 离世日期 |
+| birthplace | VARCHAR(20) | 出生地 |
+
+编剧(scenarist)：
+
+|  字段   | 类型  | 说明  |
+|  ----  | ---- | ---- |
+| id | INTEGER |  |
+| name_cn | VARCHAR(40) | 中文名 |
+| name_en | VARCHAR(40) | 英文名 |
+| gender | BOOLEAN | 性别 |
+| birthday | DATETIME | 出生日期 |
+| leaveday | DATE | 离世日期 |
+| birthplace | VARCHAR(20) | 出生地 |
+
+演员(actor)：
+
+|  字段   | 类型  | 说明  |
+|  ----  | ---- | ---- |
+| id | INTEGER |  |
+| name_cn | VARCHAR(40) | 中文名 |
+| name_en | VARCHAR(40) | 英文名 |
+| gender | BOOLEAN | 性别 |
+| birthday | DATE | 出生日期 |
+| leaveday | DATE | 离世日期 |
+| birthplace | VARCHAR(20) | 出生地 |
+
+地区(area)：
+>
+|  字段   | 类型  | 说明  |
+|  ----  | ---- | ---- |
+| id | INTEGER |  |
+| name | VARCHAR(20) |  |
+
+电影类型(type)：
+
+|  字段   | 类型  | 说明  |
+|  ----  | ---- | ---- |
+| id | INTEGER |  |
+| name | VARCHAR(40) |  |
+
+电影标签(tag)：
+
+|  字段   | 类型  | 说明  |
+|  ----  | ---- | ---- |
+| id | INTEGER |  |
+| name | VARCHAR(40) |  |
+
+用户(user)：
+
+|  字段   | 类型  | 说明  |
+|  ----  | ---- | ---- |
+| id | INTEGER |  |
+| name | VARCHAR(20) | 名字 |
+| alias | VARCHAR(20) | 别名 |
+| email | VARCHAR(20) | 邮箱 |
+| gender | INT | 性别 |
+| phoneNumber | VARCHAR(20) | 电话号码 |
+| introduction | TEXT | 绍介 |
+| createDate | DATETIME | 创建日期 |

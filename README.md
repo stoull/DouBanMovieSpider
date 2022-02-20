@@ -1,6 +1,6 @@
 # DouBanMovieSpider
 
-
+## 电影页
 scrapy shell -s USER_AGENT='Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like Gecko' 'https://movie.douban.com/subject/34447553/'
 
 
@@ -21,6 +21,9 @@ response.xpath('//div[@id="info"]/span')[0].css('a::text').getall()
 response.xpath('//div[@id="info"]/span')[1].css('a::text').getall()
 
 主演们：
+
+response.css('span.actor span.attrs a::text').getall()
+
 response.xpath('//span[@class="actor"]//span[@class="attrs"]/a/text()').getall()
 
 
@@ -48,6 +51,19 @@ response.xpath('//strong[@class="ll rating_num"]/text()').get()
 简介(需处理换行符)：
 response.xpath('//span[@property="v:summary"]/text()').get()
 
+
+
+## 人物页
+
+小津安二郎 Yasujirô Ozu：
+https://movie.douban.com/celebrity/1036727/
+
+scrapy shell -s USER_AGENT='Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like Gecko' 'https://movie.douban.com/celebrity/1036727/'
+
+名字：
+response.xpath('//div[@id="content"]/h1/text()').get()
+
+
 电影(movie)：
 
 |  字段   | 类型  | 说明  |
@@ -74,12 +90,16 @@ response.xpath('//span[@property="v:summary"]/text()').get()
 |  字段   | 类型  | 说明  |
 |  ----  | ---- | ---- |
 | id | INTEGER |  |
-| name_cn | VARCHAR(40) | 中文名 |
-| name_en | VARCHAR(40) | 英文名 |
+| name_cn | VARCHAR(100) | 中文名 |
+| name_en | VARCHAR(100) | 英文名 |
 | gender | BOOLEAN | 性别 |
 | birthday | DATE | 出生日期 |
 | leaveday | DATE | 离世日期 |
-| birthplace | VARCHAR(20) | 出生地 |
+| birthplace | VARCHAR(100) | 出生地 |
+| imdb | VARCHAR(20) | IMDB编号 |
+| intro | TEXT | 影人简介 |
+| photoUrl | VARCHAR(200) | 头像 |
+
 
 编剧(scenarist)：
 

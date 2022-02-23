@@ -1,17 +1,7 @@
 import scrapy
-
-class Director(scrapy.Item):
-    d_id = Field()
-    name_cn = Field()
-    name_en = Field()
-    gender = Field()
-    birthday = Field(serializer=str)
-    leaveday = Field(serializer=str)
-    birthplace = Field()
-    imdb = Field()
-    intro = Field()
-    photoUrl = Field()
-
+import re
+from DouBanMovieSpider.items import Director
+from scrapy.loader import ItemLoader
 
 class QuotesSpider(scrapy.Spider):
     name = "movie"
@@ -40,10 +30,9 @@ class QuotesSpider(scrapy.Spider):
             dire_name = dire_html.css('a::text').get()
             dire_path = dire_html.css('a::attr(href)').get()
             dire_id = dire_path.split('/')[2]
-            director = Director(d_id=dire_id, name_cn=dire_name)
-            # director_list.append({"id": dire_id, "name": dire_name, "path": dire_path})
-            director_list.append(director)
+            director_list.append({"id": dire_id, "name": dire_name, "path": dire_path})
             print(f'xxxxxxxxxxxx2 {director_list}')
+            print('Before yield director follow')
             yield response.follow(dire_path, callback=self.parseDirector)
 
         # 编剧
@@ -77,10 +66,39 @@ class QuotesSpider(scrapy.Spider):
         }
 
     def parseDirector(self, response):
+        director_id = response.url.split('/')[4]
         director_name = response.xpath('//div[@id="content"]/h1/text()').get()
-        print(f'xxxxxxx {director_name}')
-        yield {"director_name": director_name}
 
+        l = ItemLoader(item=Director(), response=response)
+        l.add_value('d_id', director_id)
+        l.add_value('name_cn', director_name)
+
+        all_info_li_html = response.xpath('//div[@class="info"]/ul/li')
+        for li in all_info_li_html:
+            li_name = li.css('span::text').get()
+            li_value_str = li.css('li::text').getall()[1]
+            li_value = re.sub(r"[\n\t\s:]*", "", li_value_str)
+            print(f'li name: {li_name} li value: {li_value}')
+            if li_name == "性别":
+                l.add_value('gender', li_value)
+            elif li_name == "星座":
+                l.add_value('name_cn', li_value)
+            elif li_name == "出生日期":
+                l.add_value('birthday', li_value)
+            elif li_name == "出生地":
+                l.add_value('birthplace', li_value)
+            elif li_name == "职业":
+                l.add_value('name_cn', li_value)
+            elif li_name == "imdb编号":
+                l.add_value('imdb', li_value)
+
+        # l.add_xpath('name', '//div[@class="product_name"]')
+        # l.add_xpath('name', '//div[@class="product_title"]')
+        # l.add_xpath('price', '//p[@id="price"]')
+        # l.add_css('stock', 'p#stock]')
+
+        print(f'xxxxxxx {l.load_item()}')
+        yield l.load_item()
     def parseActor(self, response):
         pass
 

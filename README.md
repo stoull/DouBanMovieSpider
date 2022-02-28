@@ -69,13 +69,16 @@ response.xpath('//div[@id="content"]/h1/text()').get()
 |  字段   | 类型  | 说明  |
 |  ----  | ---- | ---- |
 | id | INTEGER | 电影id, 对应豆瓣上的id |
-| name | VARCHAR(40) | 电影名 |
+| name | VARCHAR(200) | 电影名 |
+| directors | VARCHAR(40) | 导演 |
+| style | VARCHAR(60) | 类型 |
 | releaseDate | DATE | 电影日期 |
 | language | VARCHAR(20) | 语言 |
 | length | REAL | 时长 |
 | otherNames | VARCHAR(100) | 别名 |
 | score | INT | 评分 |
 | synopsis | TEXT | 简介 |
+| imdb | VARCHAR(20) | IMDb |
 | doubanUrl | VARCHAR(200) | 对应豆瓣的url |
 | filePath | VARCHAR(200) | 电影文件路径 |
 | fileUrl | VARCHAR(200) | 电影文件路径 |
@@ -106,24 +109,30 @@ response.xpath('//div[@id="content"]/h1/text()').get()
 |  字段   | 类型  | 说明  |
 |  ----  | ---- | ---- |
 | id | INTEGER |  |
-| name_cn | VARCHAR(40) | 中文名 |
-| name_en | VARCHAR(40) | 英文名 |
+| name_cn | VARCHAR(100) | 中文名 |
+| name_en | VARCHAR(100) | 英文名 |
 | gender | BOOLEAN | 性别 |
-| birthday | DATETIME | 出生日期 |
+| birthday | DATE | 出生日期 |
 | leaveday | DATE | 离世日期 |
-| birthplace | VARCHAR(20) | 出生地 |
+| birthplace | VARCHAR(100) | 出生地 |
+| imdb | VARCHAR(20) | IMDB编号 |
+| intro | TEXT | 影人简介 |
+| photoUrl | VARCHAR(200) | 头像 |
 
 演员(actor)：
 
 |  字段   | 类型  | 说明  |
 |  ----  | ---- | ---- |
 | id | INTEGER |  |
-| name_cn | VARCHAR(40) | 中文名 |
-| name_en | VARCHAR(40) | 英文名 |
+| name_cn | VARCHAR(100) | 中文名 |
+| name_en | VARCHAR(100) | 英文名 |
 | gender | BOOLEAN | 性别 |
 | birthday | DATE | 出生日期 |
 | leaveday | DATE | 离世日期 |
-| birthplace | VARCHAR(20) | 出生地 |
+| birthplace | VARCHAR(100) | 出生地 |
+| imdb | VARCHAR(20) | IMDB编号 |
+| intro | TEXT | 影人简介 |
+| photoUrl | VARCHAR(200) | 头像 |
 
 地区(area)：
 >

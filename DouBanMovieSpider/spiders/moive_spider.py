@@ -22,36 +22,38 @@ class QuotesSpider(scrapy.Spider):
         # scenarist = response.xpath('//div[@id="info"]/span')[1].css('a::text').getall()
         # actors = response.xpath('//span[@class="actor"]//span[@class="attrs"]/a/text()').getall()
 
-        # 导演
+        # 获取导演信息
         director_list = []
         dire_info_html = response.xpath('//div[@id="info"]/span')[0].css('a')
-        print(f'xxxxxxxxxxxx1 {len(dire_info_html)}')
         for dire_html in dire_info_html:
             dire_name = dire_html.css('a::text').get()
             dire_path = dire_html.css('a::attr(href)').get()
             dire_id = dire_path.split('/')[2]
             director_list.append({"id": dire_id, "name": dire_name, "path": dire_path})
-            print(f'xxxxxxxxxxxx2 {director_list}')
             print('Before yield director follow')
-            yield response.follow(dire_path, callback=self.parseDirector)
+            yield response.follow(dire_path, callback=self.parseCelebrity)
 
         # 编剧
         scen_list = []
-        # scen_info_html = response.xpath('//div[@id="info"]/span')[1]
-        # for scen_html in scen_info_html:
-        #     scen_name = scen_html.css('a::text').get()
-        #     scen_path = scen_html.css('a::attr(href)').get()
-        #     scen_id = scen_path.split('/')
-        #     scen_list.append({"id": scen_id, "name": scen_name, "path": scen_path})
+        scen_info_html = response.xpath('//div[@id="info"]/span')[1].css('a')
+        for scen_html in scen_info_html:
+            scen_name = scen_info_html.css('a::text').get()
+            scen_path = scen_info_html.css('a::attr(href)').get()
+            scen_id = scen_path.split('/')[2]
+            scen_list.append({"id": dire_id, "name": dire_name, "path": scen_path})
+            print('Before yield scen_list follow')
+            yield response.follow(scen_path, callback=self.parseCelebrity)
 
         # # 演员
         acotor_list = []
-        # actor_info_html = response.css('span.actor span.attrs a').getall()
-        # for actor_info in actor_info_html:
-        #     actor_name = actor_info.css('a::text').get()
-        #     actor_path = actor_info.css('a::attr(href)').get()
-        #     actor_id = actor_info.split('/')
-        #     acotor_list.append({"id": actor_id, "name": actor_name, "path": actor_path})
+        actor_info_html = response.xpath('//div[@id="info"]/span')[2].css('a')
+        for actor_info in actor_info_html:
+            actor_name = actor_info_html.css('a::text').get()
+            actor_path = actor_info_html.css('a::attr(href)').get()
+            actor_id = actor_path.split('/')[2]
+            acotor_list.append({"id": dire_id, "name": dire_name, "path": actor_path})
+            print('Before yield acotor_list follow')
+            yield response.follow(actor_path, callback=self.parseCelebrity)
 
 
         # https://docs.scrapy.org/en/latest/topics/request-response.html
@@ -65,7 +67,7 @@ class QuotesSpider(scrapy.Spider):
           "actors": types
         }
 
-    def parseDirector(self, response):
+    def parseCelebrity(self, response):
         director_id = response.url.split('/')[4]
         director_name = response.xpath('//div[@id="content"]/h1/text()').get()
 
@@ -78,7 +80,7 @@ class QuotesSpider(scrapy.Spider):
             li_name = li.css('span::text').get()
             li_value_str = li.css('li::text').getall()[1]
             li_value = re.sub(r"[\n\t\s:]*", "", li_value_str)
-            print(f'li name: {li_name} li value: {li_value}')
+            print(f'parseCelebrity name: {li_name} li value: {li_value}')
             if li_name == "性别":
                 l.add_value('gender', li_value)
             elif li_name == "星座":

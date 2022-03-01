@@ -6,55 +6,83 @@ from scrapy.loader import ItemLoader
 class QuotesSpider(scrapy.Spider):
     name = "movie"
 
+# 'https://movie.douban.com/subject/1440347/' 修罗雪姬 少演员
+
+# 'https://movie.douban.com/subject/1292052/' 肖申克的救赎 两编剧
+
     def start_requests(self):
         urls = [
-            'https://movie.douban.com/subject/34447553/'
+            'https://movie.douban.com/subject/1292052/'
         ]
         for url in urls:
             yield scrapy.Request(url=url, callback=self.parse)
 
     def parse(self, response):
-        movie_name = response.xpath('//span[@property="v:itemreviewed"]/text()').get()
-        create_date = response.xpath('//span[@class="year"]/text()').get()
-        types = response.xpath('//span[@property="v:genre"]/text()').getall()
-
-        # directors = response.xpath('//div[@id="info"]/span')[0].css('a::text').getall()
-        # scenarist = response.xpath('//div[@id="info"]/span')[1].css('a::text').getall()
-        # actors = response.xpath('//span[@class="actor"]//span[@class="attrs"]/a/text()').getall()
-
         # 获取导演信息
         director_list = []
+        director_names = ""
         dire_info_html = response.xpath('//div[@id="info"]/span')[0].css('a')
         for dire_html in dire_info_html:
             dire_name = dire_html.css('a::text').get()
             dire_path = dire_html.css('a::attr(href)').get()
-            dire_id = dire_path.split('/')[2]
-            director_list.append({"id": dire_id, "name": dire_name, "path": dire_path})
-            print('Before yield director follow')
-            yield response.follow(dire_path, callback=self.parseCelebrity)
+            if 'celebrity/' in dire_path:
+                dire_id = dire_path.split('/')[2]
+                if director_names:
+                    director_names = director_names + ", " + dire_name
+                else:
+                    director_names = dire_name
+                director_list.append({"id": dire_id, "name": dire_name, "path": dire_path})
+                print(f'Before yield director follow: {dire_path}')
+                # yield response.follow(dire_path, callback=self.parseCelebrity)
 
         # 编剧
         scen_list = []
+        scen_names = ""
         scen_info_html = response.xpath('//div[@id="info"]/span')[1].css('a')
         for scen_html in scen_info_html:
-            scen_name = scen_info_html.css('a::text').get()
-            scen_path = scen_info_html.css('a::attr(href)').get()
-            scen_id = scen_path.split('/')[2]
-            scen_list.append({"id": dire_id, "name": dire_name, "path": scen_path})
-            print('Before yield scen_list follow')
-            yield response.follow(scen_path, callback=self.parseCelebrity)
+            scen_name = scen_html.css('a::text').get()
+            scen_path = scen_html.css('a::attr(href)').get()
+            if 'celebrity/' in scen_path:
+                scen_id = scen_path.split('/')[2]
+                if scen_names:
+                    scen_names = scen_names + ", " + scen_name
+                else:
+                    scen_names = scen_name
+                scen_list.append({"id": dire_id, "name": dire_name, "path": scen_path})
+                print(f'Before yield scen_list follow: {scen_path}')
+                # yield response.follow(scen_path, callback=self.parseCelebrity)
 
         # # 演员
         acotor_list = []
+        acotor_names = ""
         actor_info_html = response.xpath('//div[@id="info"]/span')[2].css('a')
-        for actor_info in actor_info_html:
-            actor_name = actor_info_html.css('a::text').get()
-            actor_path = actor_info_html.css('a::attr(href)').get()
-            actor_id = actor_path.split('/')[2]
-            acotor_list.append({"id": dire_id, "name": dire_name, "path": actor_path})
-            print('Before yield acotor_list follow')
-            yield response.follow(actor_path, callback=self.parseCelebrity)
+        for actor_html in actor_info_html:
+            actor_name = actor_html.css('a::text').get()
+            actor_path = actor_html.css('a::attr(href)').get()
+            if 'celebrity/' in actor_path:
+                actor_id = actor_path.split('/')[2]
+                if acotor_names:
+                    acotor_names = acotor_names + ", " + actor_name
+                else:
+                    acotor_names = actor_name
+                acotor_list.append({"id": dire_id, "name": dire_name, "path": actor_path})
+                print(f'Before yield acotor_list follow: {actor_path}')
+                # yield response.follow(actor_path, callback=self.parseCelebrity)
 
+
+        # 解析电影信息
+        movie_id = response.url.split('/')[4]
+        movie_name = response.xpath('//span[@property="v:itemreviewed"]/text()').get()
+        create_date = response.xpath('//span[@class="year"]/text()').get()
+        types = response.xpath('//span[@property="v:genre"]/text()').getall()
+
+        print("===========")
+        print(director_names)
+        print(scen_names)
+        print(acotor_names)
+        directors = response.xpath('//div[@id="info"]/span')[0].css('a::text').getall()
+        scenarist = response.xpath('//div[@id="info"]/span')[1].css('a::text').getall()
+        actors = response.xpath('//span[@class="actor"]//span[@class="attrs"]/a/text()').getall()
 
         # https://docs.scrapy.org/en/latest/topics/request-response.html
         print('Before yield movie 对象')

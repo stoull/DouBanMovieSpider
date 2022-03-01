@@ -6,6 +6,9 @@ scrapy shell -s USER_AGENT='Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; rv:
 
 scrapy shell -s USER_AGENT='Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like Gecko' 'https://movie.douban.com/subject/27203644/?from=showing'
 
+电影ID：
+response.url.split('/')[4]
+
 电影名：
 response.xpath('//span[@property="v:itemreviewed"]/text()').get()
 
@@ -70,7 +73,9 @@ response.xpath('//div[@id="content"]/h1/text()').get()
 |  ----  | ---- | ---- |
 | id | INTEGER | 电影id, 对应豆瓣上的id |
 | name | VARCHAR(200) | 电影名 |
-| directors | VARCHAR(40) | 导演 |
+| directors | VARCHAR(100) | 导演 |
+| scenarists | VARCHAR(100) | 编剧 |
+| actors | VARCHAR(200) | 演员 |
 | style | VARCHAR(60) | 类型 |
 | releaseDate | DATE | 电影日期 |
 | language | VARCHAR(20) | 语言 |

@@ -1,6 +1,6 @@
 import scrapy
 import re
-from DouBanMovieSpider.items import Director
+from DouBanMovieSpider.items import Moive,Director,Scenarist,Actor
 from scrapy.loader import ItemLoader
 
 class QuotesSpider(scrapy.Spider):
@@ -73,26 +73,41 @@ class QuotesSpider(scrapy.Spider):
         # 解析电影信息
         movie_id = response.url.split('/')[4]
         movie_name = response.xpath('//span[@property="v:itemreviewed"]/text()').get()
-        create_date = response.xpath('//span[@class="year"]/text()').get()
+        year_String = response.xpath('//span[@class="year"]/text()').get()
+        year_int = int(re.sub('[()]', '', year_String)) # 移除（）并转成Int
         types = response.xpath('//span[@property="v:genre"]/text()').getall()
+        release_dates = response.xpath('//span[@property="v:initialReleaseDate"]/text()').getall()
+        info_br_sibling_html = response.xpath('//div[@id="info"]/br/following-sibling::text()').getall()
+        area = info_br_sibling_html[6]
+        languages = info_br_sibling_html[8]
+        otherNames = info_br_sibling_html[15]
+        score = response.xpath('//strong[@class="ll rating_num"]/text()').get()
+        score_float = float(score)
+        synopsis = response.xpath('//span[@property="v:summary"]/text()').get()
+        imdb = info_br_sibling_html[17]
+        doubanUrl = response.url
+        iconUrl = response.xpath('//img[@rel="v:image"]').xpath('@src').get()
+        posterUrl = "https://img9.doubanio.com/view/photo/l/public/" + iconUrl.split('/')[-1]
 
-        print("===========")
-        print(director_names)
-        print(scen_names)
-        print(acotor_names)
-        directors = response.xpath('//div[@id="info"]/span')[0].css('a::text').getall()
-        scenarist = response.xpath('//div[@id="info"]/span')[1].css('a::text').getall()
-        actors = response.xpath('//span[@class="actor"]//span[@class="attrs"]/a/text()').getall()
+        movie = Moive(m_id=movie_id, name=movie_name, year=year_int, directors=director_names,scenarists=scen_names,actors=acotor_names)
+        movie['style'] = " / ".join(types)
+        movie['releaseDate'] = " / ".join(release_dates)
+        movie['area'] = area[1:] # 移除最前面的空格
+        movie['language'] = languages[1:] # 移除最前面的空格
+        movie['length'] = " / ".join(types)
+        movie['otherNames'] = otherNames[1:] # 移除最前面的空格
+        movie['score'] = score_float
+        movie['synopsis'] = synopsis
+        movie['imdb'] = imdb[1:] # 移除最前面的空格
+        movie['doubanUrl'] = doubanUrl
+        movie['posterUrl'] = posterUrl
+        movie['iconUrl'] = iconUrl
+
 
         # https://docs.scrapy.org/en/latest/topics/request-response.html
-        print('Before yield movie 对象')
+        print(f'Before yield movie 对象: {movie}')
         yield {
-          "movie_name": movie_name,
-          "create_date": create_date,
-          "directors": director_list,
-          "scenarist": scen_list,
-          "actors": acotor_list,
-          "actors": types
+          movie
         }
 
     def parseCelebrity(self, response):

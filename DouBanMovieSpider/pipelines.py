@@ -20,5 +20,4 @@ class DoubanmoviespiderPipeline:
     def process_item(self, item, spider):
         line = json.dumps(ItemAdapter(item).asdict()) + "\n"
         self.file.write(line)
-        print(f"写入 Pipe line {item}")
         return item

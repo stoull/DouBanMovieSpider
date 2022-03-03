@@ -4,6 +4,9 @@
 scrapy shell -s USER_AGENT='Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like Gecko' 'https://movie.douban.com/subject/34447553/'
 
 
+
+scrapy shell -s USER_AGENT='Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like Gecko' 'https://movie.douban.com/subject/1292052/'
+
 scrapy shell -s USER_AGENT='Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like Gecko' 'https://movie.douban.com/subject/1292052/'
 
 电影ID：
@@ -51,6 +54,10 @@ response.xpath('//img[@alt="Verdens verste menneske"]').xpath('@src').get()
 response.xpath('//img[@alt="The Shawshank Redemption"]').xpath('@src').get()
 
 response.xpath('//img[@rel="v:image"]').xpath('@src').get()
+
+片长:
+response.xpath('//span[@property="v:runtime"]/text()').get()
+response.xpath('//span[@property="v:runtime"]').xpath('@content').get()
 
 电影url:
 https://movie.douban.com/subject/2669034145/

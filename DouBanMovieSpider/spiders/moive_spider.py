@@ -10,9 +10,14 @@ class QuotesSpider(scrapy.Spider):
 
 # 'https://movie.douban.com/subject/1292052/' 肖申克的救赎 两编剧
 
+# 'https://movie.douban.com/subject/1291546/' 霸王别姬
+
+# 'https://movie.douban.com/subject/1292722/' 泰坦尼克号
+
+
     def start_requests(self):
         urls = [
-            'https://movie.douban.com/subject/1292052/'
+            'https://movie.douban.com/subject/1440347/'
         ]
         for url in urls:
             yield scrapy.Request(url=url, callback=self.parse)
@@ -78,23 +83,25 @@ class QuotesSpider(scrapy.Spider):
         types = response.xpath('//span[@property="v:genre"]/text()').getall()
         release_dates = response.xpath('//span[@property="v:initialReleaseDate"]/text()').getall()
         info_br_sibling_html = response.xpath('//div[@id="info"]/br/following-sibling::text()').getall()
-        area = info_br_sibling_html[6]
-        languages = info_br_sibling_html[8]
-        otherNames = info_br_sibling_html[15]
+        area_index = 4+len(types)
+        area = info_br_sibling_html[area_index]
+        languages = info_br_sibling_html[area_index+2] # 8
+        otherNames = info_br_sibling_html[-4] # 15
         score = response.xpath('//strong[@class="ll rating_num"]/text()').get()
+        lenght = response.xpath('//span[@property="v:runtime"]').xpath('@content').get()
         score_float = float(score)
         synopsis = response.xpath('//span[@property="v:summary"]/text()').get()
-        imdb = info_br_sibling_html[17]
+        imdb = info_br_sibling_html[-2] #17
         doubanUrl = response.url
         iconUrl = response.xpath('//img[@rel="v:image"]').xpath('@src').get()
         posterUrl = "https://img9.doubanio.com/view/photo/l/public/" + iconUrl.split('/')[-1]
 
-        movie = Moive(m_id=movie_id, name=movie_name, year=year_int, directors=director_names,scenarists=scen_names,actors=acotor_names)
+        movie = Moive(m_id=movie_id, name=movie_name, year=year_int, directors=director_names, scenarists=scen_names, actors=acotor_names)
         movie['style'] = " / ".join(types)
         movie['releaseDate'] = " / ".join(release_dates)
         movie['area'] = area[1:] # 移除最前面的空格
         movie['language'] = languages[1:] # 移除最前面的空格
-        movie['length'] = " / ".join(types)
+        movie['length'] = int(lenght)
         movie['otherNames'] = otherNames[1:] # 移除最前面的空格
         movie['score'] = score_float
         movie['synopsis'] = synopsis
@@ -105,10 +112,8 @@ class QuotesSpider(scrapy.Spider):
 
 
         # https://docs.scrapy.org/en/latest/topics/request-response.html
-        print(f'Before yield movie 对象: {movie}')
-        yield {
-          movie
-        }
+        print(f'movie 对象: {movie}')
+        yield movie
 
     def parseCelebrity(self, response):
         director_id = response.url.split('/')[4]

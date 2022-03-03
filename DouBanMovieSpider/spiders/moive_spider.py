@@ -17,6 +17,7 @@ class QuotesSpider(scrapy.Spider):
 
 # 'https://movie.douban.com/subject/1292722/' 泰坦尼克号
 
+# ‘https://movie.douban.com/subject/1293764/’ 与狼共舞  无又名
 
 # 小津安二郎 Yasujirô Ozu： 已故
 # https://movie.douban.com/celebrity/1036727/
@@ -27,10 +28,10 @@ class QuotesSpider(scrapy.Spider):
 
     def start_requests(self):
         urls = [
-            'https://movie.douban.com/celebrity/1036727/'
+            'https://movie.douban.com/subject/1292052/'
         ]
         for url in urls:
-            yield scrapy.Request(url=url, callback=self.parseCelebrity)
+            yield scrapy.Request(url=url, callback=self.parse)
 
     def parse(self, response):
         # 获取导演信息
@@ -93,15 +94,18 @@ class QuotesSpider(scrapy.Spider):
         types = response.xpath('//span[@property="v:genre"]/text()').getall()
         release_dates = response.xpath('//span[@property="v:initialReleaseDate"]/text()').getall()
         info_br_sibling_html = response.xpath('//div[@id="info"]/br/following-sibling::text()').getall()
+
         area_index = 4+len(types)
         area = info_br_sibling_html[area_index]
         languages = info_br_sibling_html[area_index+2] # 8
-        otherNames = info_br_sibling_html[-4] # 15
+        otherNames = info_br_sibling_html[area_index+9] # 15
         score = response.xpath('//strong[@class="ll rating_num"]/text()').get()
         lenght = response.xpath('//span[@property="v:runtime"]').xpath('@content').get()
         score_float = float(score)
-        synopsis = response.xpath('//span[@property="v:summary"]/text()').get()
+        synopsis = response.xpath('//span[@property="v:summary"]/text()').getall()
         imdb = info_br_sibling_html[-2] #17
+        if otherNames == imdb:
+            otherNames=""
         doubanUrl = response.url
         iconUrl = response.xpath('//img[@rel="v:image"]').xpath('@src').get()
         posterUrl = "https://img9.doubanio.com/view/photo/l/public/" + iconUrl.split('/')[-1]
@@ -114,7 +118,7 @@ class QuotesSpider(scrapy.Spider):
         movie['length'] = int(lenght)
         movie['otherNames'] = otherNames[1:] # 移除最前面的空格
         movie['score'] = score_float
-        movie['synopsis'] = synopsis
+        movie['synopsis'] = "".join(synopsis)
         movie['imdb'] = imdb[1:] # 移除最前面的空格
         movie['doubanUrl'] = doubanUrl
         movie['posterUrl'] = posterUrl
@@ -130,7 +134,8 @@ class QuotesSpider(scrapy.Spider):
         director_name = response.xpath('//div[@id="content"]/h1/text()').get()
         photoUrl = response.xpath('//div[@class="nbg"]/img').xpath('@src').get()
 
-        intro = response.xpath('//span[@class="short"]/text()').get()
+        introArray = response.xpath('//span[@class="short"]/text()').getall()
+        intro = "".join(introArray)
         if intro is None:
             intro = response.xpath('//div[@class="bd"]/text()').getall()[4]
 

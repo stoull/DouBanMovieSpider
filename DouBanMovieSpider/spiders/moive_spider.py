@@ -1,5 +1,8 @@
 import scrapy
 import re
+import time
+from datetime import datetime
+
 from DouBanMovieSpider.items import Moive,Director,Scenarist,Actor
 from scrapy.loader import ItemLoader
 
@@ -15,12 +18,19 @@ class QuotesSpider(scrapy.Spider):
 # 'https://movie.douban.com/subject/1292722/' 泰坦尼克号
 
 
+# 小津安二郎 Yasujirô Ozu： 已故
+# https://movie.douban.com/celebrity/1036727/
+
+# 詹姆斯·卡梅隆 James Cameron：健在
+# https://movie.douban.com/celebrity/1022571/
+
+
     def start_requests(self):
         urls = [
-            'https://movie.douban.com/subject/1440347/'
+            'https://movie.douban.com/celebrity/1036727/'
         ]
         for url in urls:
-            yield scrapy.Request(url=url, callback=self.parse)
+            yield scrapy.Request(url=url, callback=self.parseCelebrity)
 
     def parse(self, response):
         # 获取导演信息
@@ -118,37 +128,66 @@ class QuotesSpider(scrapy.Spider):
     def parseCelebrity(self, response):
         director_id = response.url.split('/')[4]
         director_name = response.xpath('//div[@id="content"]/h1/text()').get()
+        photoUrl = response.xpath('//div[@class="nbg"]/img').xpath('@src').get()
 
-        l = ItemLoader(item=Director(), response=response)
-        l.add_value('d_id', director_id)
-        l.add_value('name_cn', director_name)
+        intro = response.xpath('//span[@class="short"]/text()').get()
+        if intro is None:
+            intro = response.xpath('//div[@class="bd"]/text()').getall()[4]
 
+        director = Director(d_id=director_id, name=director_name)
+        
         all_info_li_html = response.xpath('//div[@class="info"]/ul/li')
         for li in all_info_li_html:
             li_name = li.css('span::text').get()
             li_value_str = li.css('li::text').getall()[1]
-            li_value = re.sub(r"[\n\t\s:]*", "", li_value_str)
-            print(f'parseCelebrity name: {li_name} li value: {li_value}')
+            li_value = re.sub(r"[\n\t\s:]*", "", li_value_str) # 移除值中的所有空格及换行
+            print(f'xxxLi: {li_name} : {li_value}')
             if li_name == "性别":
-                l.add_value('gender', li_value)
+                director['gender'] = li_value
             elif li_name == "星座":
-                l.add_value('name_cn', li_value)
+                director['zodiac'] = li_value
             elif li_name == "出生日期":
-                l.add_value('birthday', li_value)
+                director['livingTime'] = li_value
+
+                dateString = re.sub(r"[^0-9]", "-", li_value)
+                dateString = dateString[:-1]
+                datetime_obj = datetime.strptime(dateString, '%Y-%m-%d')
+                director['birthday'] = time.mktime(datetime_obj.timetuple())
+
+            elif li_name == "生卒日期":
+                director['livingTime'] = li_value
+                dateStrArray = li_value.split('至')
+                dateRawString1 = dateStrArray[0]
+                dateRawString2 = dateStrArray[1]
+                dateString1 = re.sub(r"[^0-9]", "-", dateRawString1)
+                dateString2 = re.sub(r"[^0-9]", "-", dateRawString2)
+                dateString1 = dateString1[1:-1]
+                dateString2 = dateString2[1:-1]
+                datetime_object1 = datetime.strptime(dateString1, '%Y-%m-%d')
+                datetime_object2 = datetime.strptime(dateString2, '%Y-%m-%d')
+                birthday = time.mktime(datetime_object1.timetuple())
+                leaveday = time.mktime(datetime_object2.timetuple())
+                director['birthday'] = li_value
+                director['leaveday'] = li_value
             elif li_name == "出生地":
-                l.add_value('birthplace', li_value)
+                director['birthplace'] = li_value
             elif li_name == "职业":
-                l.add_value('name_cn', li_value)
+                director['occupation'] = li_value
+            elif li_name == "更多外文名":
+                director['names_en'] = li_value
+            elif li_name == "更多中文名":
+                director['names_cn'] = li_value
+            elif li_name == "家庭成员":
+                director['family'] = li_value
             elif li_name == "imdb编号":
-                l.add_value('imdb', li_value)
+                director['imdb'] = li.css('a::text').get()
 
-        # l.add_xpath('name', '//div[@class="product_name"]')
-        # l.add_xpath('name', '//div[@class="product_title"]')
-        # l.add_xpath('price', '//p[@id="price"]')
-        # l.add_css('stock', 'p#stock]')
+        director['photoUrl'] = photoUrl
+        director['intro'] = intro
 
-        print(f'xxxxxxx {l.load_item()}')
-        yield l.load_item()
+
+        print(f'xxxxxxx {director}')
+        yield director
     def parseActor(self, response):
         pass
 

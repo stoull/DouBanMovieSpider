@@ -78,14 +78,22 @@ response.xpath('//span[@property="v:summary"]/text()').get()
 
 ## 人物页
 
-小津安二郎 Yasujirô Ozu：
+scrapy shell -s USER_AGENT='Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like Gecko' 'https://movie.douban.com/celebrity/1036727/'
+
+小津安二郎 Yasujirô Ozu： 已故
 https://movie.douban.com/celebrity/1036727/
 
-scrapy shell -s USER_AGENT='Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like Gecko' 'https://movie.douban.com/celebrity/1036727/'
+詹姆斯·卡梅隆 James Cameron：健在
+https://movie.douban.com/celebrity/1022571/
+
+
+https://img9.doubanio.com/view/celebrity/raw/public/p33715.jpg
 
 名字：
 response.xpath('//div[@id="content"]/h1/text()').get()
 
+
+## 数据模型页
 
 电影(movie)：
 
@@ -97,11 +105,11 @@ response.xpath('//div[@id="content"]/h1/text()').get()
 | scenarists | VARCHAR(200) | 编剧 |
 | actors | VARCHAR(400) | 演员 |
 | style | VARCHAR(60) | 类型 |
-| year | INT | 电影年份 |
+| year | INTEGER | 电影年份 |
 | releaseDate | VARCHAR(200) | 电影日期 |
 | area | VARCHAR(200) | 制片国家/地区 |
 | language | VARCHAR(60) | 语言 |
-| length | REAL | 时长 |
+| length | INTEGER | 时长 |
 | otherNames | VARCHAR(100) | 别名 |
 | score | NUMERIC | 评分 |
 | synopsis | TEXT | 简介 |
@@ -115,51 +123,26 @@ response.xpath('//div[@id="content"]/h1/text()').get()
 | lastWatchDate | DATETIME | 最近观看时间 |
 | lastWatchUser | VARCHAR(40) | 最近观看人 |
 
-导演(director)：
+导演,编剧, 演员(director, scenarist, actor)：
 
 |  字段   | 类型  | 说明  |
 |  ----  | ---- | ---- |
 | id | INTEGER |  |
-| name_cn | VARCHAR(100) | 中文名 |
-| name_en | VARCHAR(100) | 英文名 |
+| name | VARCHAR(100) | 名字 |
 | gender | BOOLEAN | 性别 |
-| birthday | DATE | 出生日期 |
-| leaveday | DATE | 离世日期 |
+| zodiac | VARCHAR(10) | 星座 |
+| livingTime | VARCHAR(100) | 出生及离世时间String |
+| birthday | INTEGER | 出生日期 Unix Time, the number of seconds since 1970-01-01 00:00:00 UTC.|
+| leaveday | INTEGER | 离世日期 Unix Time, the number of seconds since 1970-01-01 00:00:00 UTC.|
 | birthplace | VARCHAR(100) | 出生地 |
+| occupation | VARCHAR(100) | 职业 |
+| names_cn | VARCHAR(300) | 更多中文名 |
+| names_en | VARCHAR(300) | 更多英文名 |
+| family | VARCHAR(200) | 家庭成员 |
 | imdb | VARCHAR(20) | IMDB编号 |
 | intro | TEXT | 影人简介 |
 | photoUrl | VARCHAR(200) | 头像 |
 
-
-编剧(scenarist)：
-
-|  字段   | 类型  | 说明  |
-|  ----  | ---- | ---- |
-| id | INTEGER |  |
-| name_cn | VARCHAR(100) | 中文名 |
-| name_en | VARCHAR(100) | 英文名 |
-| gender | BOOLEAN | 性别 |
-| birthday | DATE | 出生日期 |
-| leaveday | DATE | 离世日期 |
-| birthplace | VARCHAR(100) | 出生地 |
-| imdb | VARCHAR(20) | IMDB编号 |
-| intro | TEXT | 影人简介 |
-| photoUrl | VARCHAR(200) | 头像 |
-
-演员(actor)：
-
-|  字段   | 类型  | 说明  |
-|  ----  | ---- | ---- |
-| id | INTEGER |  |
-| name_cn | VARCHAR(100) | 中文名 |
-| name_en | VARCHAR(100) | 英文名 |
-| gender | BOOLEAN | 性别 |
-| birthday | DATE | 出生日期 |
-| leaveday | DATE | 离世日期 |
-| birthplace | VARCHAR(100) | 出生地 |
-| imdb | VARCHAR(20) | IMDB编号 |
-| intro | TEXT | 影人简介 |
-| photoUrl | VARCHAR(200) | 头像 |
 
 地区(area)：
 >

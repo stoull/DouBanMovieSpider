@@ -103,6 +103,8 @@ class QuotesSpider(scrapy.Spider):
         lenght = response.xpath('//span[@property="v:runtime"]').xpath('@content').get()
         score_float = float(score)
         synopsis = response.xpath('//span[@property="v:summary"]/text()').getall()
+        synopsisStr = "".join(synopsis)
+        synopsisStr = re.sub(r"^\s+", "", synopsisStr)  # 移除值中的所有空格及换行
         imdb = info_br_sibling_html[-2] #17
         if otherNames == imdb:
             otherNames=""
@@ -118,7 +120,7 @@ class QuotesSpider(scrapy.Spider):
         movie['length'] = int(lenght)
         movie['otherNames'] = otherNames[1:] # 移除最前面的空格
         movie['score'] = score_float
-        movie['synopsis'] = "".join(synopsis)
+        movie['synopsis'] = synopsisStr
         movie['imdb'] = imdb[1:] # 移除最前面的空格
         movie['doubanUrl'] = doubanUrl
         movie['posterUrl'] = posterUrl

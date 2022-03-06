@@ -31,41 +31,14 @@ class Moive(scrapy.Item):
     posterUrl = scrapy.Field()
     iconUrl = scrapy.Field()
 
-class Director(scrapy.Item):
-    d_id = scrapy.Field()
-    name = scrapy.Field()
-    gender = scrapy.Field()
-    zodiac = scrapy.Field()
-    livingTime = scrapy.Field()
-    birthday = scrapy.Field(serializer=str)
-    leaveday = scrapy.Field(serializer=str)
-    birthplace = scrapy.Field()
-    occupation = scrapy.Field()
-    names_cn = scrapy.Field()
-    names_en = scrapy.Field()
-    family = scrapy.Field()
-    imdb = scrapy.Field()
-    intro = scrapy.Field()
-    photoUrl = scrapy.Field()
+class Celebrity(scrapy.Item):
+    # properties for scrapy object
+    # indicate the types of object, have Director, Actor and Scenarist
+    type = scrapy.Field()
+    # the movie id which this object belongs to
+    movie_id = scrapy.Field()
 
-class Scenarist(scrapy.Item):
-    d_id = scrapy.Field()
-    name = scrapy.Field()
-    gender = scrapy.Field()
-    zodiac = scrapy.Field()
-    livingTime = scrapy.Field()
-    birthday = scrapy.Field(serializer=str)
-    leaveday = scrapy.Field(serializer=str)
-    birthplace = scrapy.Field()
-    occupation = scrapy.Field()
-    names_cn = scrapy.Field()
-    names_en = scrapy.Field()
-    family = scrapy.Field()
-    imdb = scrapy.Field()
-    intro = scrapy.Field()
-    photoUrl = scrapy.Field()
-
-class Actor(scrapy.Item):
+    # properties for database
     d_id = scrapy.Field()
     name = scrapy.Field()
     gender = scrapy.Field()

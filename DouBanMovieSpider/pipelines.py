@@ -4,11 +4,10 @@
 # See: https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 
 import sqlite3, os, hashlib, time, sys, json
-
 # useful for handling different item types with a single interface
 from itemadapter import ItemAdapter
 
-from DouBanMovieSpider.items import Moive, Director, Scenarist, Actor
+from DouBanMovieSpider.items import Moive, Celebrity
 
 class DoubanmoviespiderPipeline:
 
@@ -33,19 +32,17 @@ class DoubanmoviespiderPipeline:
 
         if isinstance(item, Moive):
             self.handleMoiveItem(item)
-        elif isinstance(item, Director):
-            self.handleDirectorItem(item)
-        elif isinstance(item, Actor):
-            self.handleActorItem(item)
-        elif isinstance(item, Scenarist):
-            self.handleScenaristItem(item)
+        elif isinstance(item, Celebrity):
+            self.handleCelerbrityItem(item)
         return item
 
     def handleMoiveItem(self, mItem):
         # Add a movie item to database
         con = sqlite3.connect(self.db_file)
         cur = con.cursor()
-        cur.execute('''insert into movie(id,name,directors,scenarists,actors,
+
+        # Save the information of movie
+        cur.execute('''INSERT OR IGNORE INTO movie(id,name,directors,scenarists,actors,
         style,year,releaseDate,area,language,length,otherNames,score,synopsis,
         imdb,doubanUrl,posterUrl,iconUrl)
          values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)''',(
@@ -68,32 +65,142 @@ class DoubanmoviespiderPipeline:
             mItem['posterUrl'],
             mItem['iconUrl']
         ))
+
+        movie_id = int(mItem['m_id'])
+
+        # save the infomation of area, tag, type
+        styleStr = mItem['style']
+        if styleStr is not None:
+            styleStr = styleStr.replace(" ", "")  # 移除空格
+            styles = styleStr.split('/')
+            for str in styles:
+                cur.execute('''INSERT OR IGNORE INTO type(name) values(?)''', (str,))
+                con.commit()
+                cur.execute('''SELECT id FROM type WHERE name=?;''', (str,))
+                style_id = cur.fetchone()[0]
+                if style_id is not None:
+                    cur.execute('''INSERT OR IGNORE INTO movie_type(movie_id,type_id) values(?,?)''', (movie_id, style_id))
+
+        areaStr = mItem['area']
+        if areaStr is not None:
+            areaStr = areaStr.replace(" ", "")  # 移除空格
+            areas = areaStr.split('/')
+            for str in areas:
+                cur.execute('''INSERT OR IGNORE INTO area(name) values(?)''', (str,))
+                con.commit()
+                cur.execute('''SELECT id FROM area WHERE name=?;''', (str,))
+                area_id = cur.fetchone()[0]
+                if area_id is not None:
+                    cur.execute('''INSERT OR IGNORE INTO movie_area(movie_id,area_id) values(?,?)''', (movie_id, area_id))
+
+        languageStr = mItem['language']
+        if languageStr is not None:
+            languageStr = languageStr.replace(" ", "")  # 移除空格
+            languages = languageStr.split('/')
+            for str in languages:
+                cur.execute('''INSERT OR IGNORE INTO language(name) values(?)''', (str,))
+                con.commit()
+                cur.execute('''SELECT id FROM language WHERE name=?;''', (str,))
+                language_id = cur.fetchone()[0]
+                if language_id is not None:
+                    cur.execute('''INSERT OR IGNORE INTO movie_language(movie_id,language_id) values(?,?)''', (movie_id, language_id))
+
         con.commit()
         cur.close()
 
-    def handleDirectorItem(self, dItem):
+    def handleCelerbrityItem(self, dItem):
         # Add a director item to database
         con = sqlite3.connect(self.db_file)
         cur = con.cursor()
-        cur.execute('''insert into director(id, name, gender, zodiac, livingTime, birthday, 
-        leaveday, birthplace, occupation, names_cn, names_en, family, imdb, intro, photoUrl)
-         values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? ,?, ?, ?)''',(
-            dItem['d_id'],
-            dItem['name'],
-            dItem['gender'],
-            dItem['zodiac'],
-            dItem['livingTime'],
-            dItem['birthday'],
-            dItem['leaveday'],
-            dItem['birthplace'],
-            dItem['occupation'],
-            dItem['names_cn'],
-            dItem['names_en'],
-            dItem['family'],
-            dItem['imdb'],
-            dItem['intro'],
-            dItem['photoUrl']
-        ))
+
+        obj_type = dItem['type']
+
+        # save the infomation of area
+        briPlaStr = dItem['birthplace']
+        if briPlaStr is not None:
+            briPlaStr = briPlaStr.replace(" ", "")  # 移除空格
+            if "，" in briPlaStr:
+                areaStr = briPlaStr.split('，')
+            else:
+                areaStr = briPlaStr.split(',')
+            celebrity_id = int(dItem['d_id'])
+            for str in areaStr:
+                cur.execute('''INSERT OR IGNORE INTO area(name) values(?)''', (str,))
+                con.commit()
+                cur.execute('''SELECT id FROM area WHERE name=?;''', (str,))
+                area_id = cur.fetchone()[0]
+                if area_id is not None:
+                    if obj_type == 'Director':
+                        cur.execute('''INSERT OR IGNORE INTO diector_area(diector_id,area_id) values(?,?)''',
+                                    (celebrity_id, area_id))
+                    elif obj_type == 'Actor':
+                        cur.execute('''INSERT OR IGNORE INTO actor_area(actor_id,area_id) values(?,?)''',
+                                    (celebrity_id, area_id))
+                    elif obj_type == 'actor_id':
+                        cur.execute('''INSERT OR IGNORE INTO scenarist_area(scenarist_id,area_id) values(?,?)''',
+                                    (celebrity_id, area_id))
+
+        if obj_type == 'Director':
+            cur.execute('''INSERT OR IGNORE INTO director(id, name, gender, zodiac, livingTime, birthday, 
+            leaveday, birthplace, occupation, names_cn, names_en, family, imdb, intro, photoUrl)
+             values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? ,?, ?, ?)''', (
+                dItem['d_id'],
+                dItem['name'],
+                dItem['gender'],
+                dItem['zodiac'],
+                dItem['livingTime'],
+                dItem['birthday'],
+                dItem['leaveday'],
+                dItem['birthplace'],
+                dItem['occupation'],
+                dItem['names_cn'],
+                dItem['names_en'],
+                dItem['family'],
+                dItem['imdb'],
+                dItem['intro'],
+                dItem['photoUrl']
+            ))
+        elif obj_type == 'Actor':
+            cur.execute('''INSERT OR IGNORE INTO actor(id, name, gender, zodiac, livingTime, birthday, 
+            leaveday, birthplace, occupation, names_cn, names_en, family, imdb, intro, photoUrl)
+             values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? ,?, ?, ?)''', (
+                dItem['d_id'],
+                dItem['name'],
+                dItem['gender'],
+                dItem['zodiac'],
+                dItem['livingTime'],
+                dItem['birthday'],
+                dItem['leaveday'],
+                dItem['birthplace'],
+                dItem['occupation'],
+                dItem['names_cn'],
+                dItem['names_en'],
+                dItem['family'],
+                dItem['imdb'],
+                dItem['intro'],
+                dItem['photoUrl']
+            ))
+        elif obj_type == 'Scenarist':
+            cur.execute('''INSERT OR IGNORE INTO scenarist(id, name, gender, zodiac, livingTime, birthday, 
+            leaveday, birthplace, occupation, names_cn, names_en, family, imdb, intro, photoUrl)
+             values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? ,?, ?, ?)''', (
+                dItem['d_id'],
+                dItem['name'],
+                dItem['gender'],
+                dItem['zodiac'],
+                dItem['livingTime'],
+                dItem['birthday'],
+                dItem['leaveday'],
+                dItem['birthplace'],
+                dItem['occupation'],
+                dItem['names_cn'],
+                dItem['names_en'],
+                dItem['family'],
+                dItem['imdb'],
+                dItem['intro'],
+                dItem['photoUrl']
+            ))
+
         con.commit()
         cur.close()
 
@@ -101,7 +208,7 @@ class DoubanmoviespiderPipeline:
         # Add a director item to database
         con = sqlite3.connect(self.db_file)
         cur = con.cursor()
-        cur.execute('''insert into actor(id, name, gender, zodiac, livingTime, birthday, 
+        cur.execute('''INSERT OR IGNORE INTO actor(id, name, gender, zodiac, livingTime, birthday, 
          leaveday, birthplace, occupation, names_cn, names_en, family, imdb, intro, photoUrl)
           values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? ,?, ?, ?)''', (
             dItem['d_id'],
@@ -127,7 +234,7 @@ class DoubanmoviespiderPipeline:
         # Add a Scenarist item to database
         con = sqlite3.connect(self.db_file)
         cur = con.cursor()
-        cur.execute('''insert into scenarist(id, name, gender, zodiac, livingTime, birthday, 
+        cur.execute('''INSERT OR IGNORE INTO scenarist(id, name, gender, zodiac, livingTime, birthday, 
          leaveday, birthplace, occupation, names_cn, names_en, family, imdb, intro, photoUrl)
           values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? ,?, ?, ?)''', (
             dItem['d_id'],
@@ -166,16 +273,6 @@ class DoubanmoviespiderPipeline:
         if self.isSQLite3File(self.db_file) == False:
             con = sqlite3.connect(self.db_file)
             cur = con.cursor()
-            # create user table
-            cur.execute('''CREATE TABLE user(
-            id INTEGER PRIMARY KEY,
-            name VARCHAR(20) NOT NULL,
-            alias VARCHAR(20), 
-            email VARCHAR(20),
-            gender INT DEFAULT 0,
-            phoneNumber VARCHAR(20),
-            introduction TEXT,
-            createDate DATETIME DEFAULT CURRENT_TIMESTAMP)''')
 
             # create movie table
             cur.execute('''CREATE TABLE movie(
@@ -259,17 +356,26 @@ class DoubanmoviespiderPipeline:
 
             cur.execute('''CREATE TABLE area(
             id INTEGER PRIMARY KEY,
-            name VARCHAR(20)
+            name VARCHAR(20) NOT NULL,
+            unique (name)
             )''')
 
             cur.execute('''CREATE TABLE type(
             id INTEGER PRIMARY KEY,
-            name VARCHAR(40)
+            name VARCHAR(40) NOT NULL,
+            unique (name)
             )''')
 
             cur.execute('''CREATE TABLE tag(
             id INTEGER PRIMARY KEY,
-            name VARCHAR(40)
+            name VARCHAR(40) NOT NULL,
+            unique (name)
+            )''')
+
+            cur.execute('''CREATE TABLE language(
+            id INTEGER PRIMARY KEY,
+            name VARCHAR(30) NOT NULL,
+            unique (name)
             )''')
 
             cur.execute('''CREATE TABLE movie_director(
@@ -300,6 +406,13 @@ class DoubanmoviespiderPipeline:
             CONSTRAINT FK_area_id FOREIGN KEY (area_id) REFERENCES area(id)
             )''')
 
+            cur.execute('''CREATE TABLE movie_type(
+            movie_id INTEGER,
+            type_id INTEGER,
+            CONSTRAINT FK_movie_id FOREIGN KEY (movie_id) REFERENCES movie(id),
+            CONSTRAINT FK_type_id FOREIGN KEY (type_id) REFERENCES type(id)
+            )''')
+
             cur.execute('''CREATE TABLE movie_tag(
             movie_id INTEGER,
             tag_id INTEGER,
@@ -307,11 +420,32 @@ class DoubanmoviespiderPipeline:
             CONSTRAINT FK_tag_id FOREIGN KEY (tag_id) REFERENCES tag(id)
             )''')
 
-            cur.execute('''CREATE TABLE movie_type(
+            cur.execute('''CREATE TABLE movie_language(
             movie_id INTEGER,
-            tppe_id INTEGER,
+            language_id INTEGER,
             CONSTRAINT FK_movie_id FOREIGN KEY (movie_id) REFERENCES movie(id),
-            CONSTRAINT FK_type_id FOREIGN KEY (tppe_id) REFERENCES type(id)
+            CONSTRAINT FK_language_id FOREIGN KEY (language_id) REFERENCES language(id)
+            )''')
+
+            cur.execute('''CREATE TABLE diector_area(
+            diector_id INTEGER,
+            area_id INTEGER,
+            CONSTRAINT FK_diector_id FOREIGN KEY (diector_id) REFERENCES diector(id),
+            CONSTRAINT FK_type_id FOREIGN KEY (area_id) REFERENCES area(id)
+            )''')
+
+            cur.execute('''CREATE TABLE scenarist_area(
+            scenarist_id INTEGER,
+            area_id INTEGER,
+            CONSTRAINT FK_diector_id FOREIGN KEY (scenarist_id) REFERENCES scenarist(id),
+            CONSTRAINT FK_type_id FOREIGN KEY (area_id) REFERENCES area(id)
+            )''')
+
+            cur.execute('''CREATE TABLE actor_area(
+            actor_id INTEGER,
+            area_id INTEGER,
+            CONSTRAINT FK_diector_id FOREIGN KEY (actor_id) REFERENCES actor(id),
+            CONSTRAINT FK_type_id FOREIGN KEY (area_id) REFERENCES area(id)
             )''')
 
             con.commit()

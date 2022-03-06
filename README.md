@@ -150,6 +150,7 @@ response.xpath('//div[@id="content"]/h1/text()').get()
 |  ----  | ---- | ---- |
 | id | INTEGER |  |
 | name | VARCHAR(20) |  |
+|`unique (name)`|
 
 电影类型(type)：
 
@@ -157,6 +158,17 @@ response.xpath('//div[@id="content"]/h1/text()').get()
 |  ----  | ---- | ---- |
 | id | INTEGER |  |
 | name | VARCHAR(40) |  |
+|`unique (name)`|
+
+电影语言(language)：
+
+|  字段   | 类型  | 说明  |
+|  ----  | ---- | ---- |
+| id | INTEGER |  |
+| name | VARCHAR(30) |  |
+|`unique (name)`|
+
+
 
 电影标签(tag)：
 
@@ -164,6 +176,7 @@ response.xpath('//div[@id="content"]/h1/text()').get()
 |  ----  | ---- | ---- |
 | id | INTEGER |  |
 | name | VARCHAR(40) |  |
+|`unique (name)`|
 
 用户(user)：
 

@@ -394,9 +394,9 @@ class DoubanmoviespiderPipeline:
 
             cur.execute('''CREATE TABLE movie_scenarist(
             movie_id INTEGER,
-            sscenarist_id INTEGER,
+            scenarist_id INTEGER,
             CONSTRAINT FK_movie_id FOREIGN KEY (movie_id) REFERENCES movie(id),
-            CONSTRAINT FK_scenarist_id FOREIGN KEY (sscenarist_id) REFERENCES scenarist(id)
+            CONSTRAINT FK_scenarist_id FOREIGN KEY (scenarist_id) REFERENCES scenarist(id)
             )''')
 
             cur.execute('''CREATE TABLE movie_area(

@@ -8,7 +8,7 @@ import sqlite3, os, hashlib, time, sys, json
 # useful for handling different item types with a single interface
 from itemadapter import ItemAdapter
 
-from DouBanMovieSpider.items import Moive,Director,Scenarist,Actor
+from DouBanMovieSpider.items import Moive, Director, Scenarist, Actor
 
 class DoubanmoviespiderPipeline:
 
@@ -28,18 +28,23 @@ class DoubanmoviespiderPipeline:
     def process_item(self, item, spider):
         line = json.dumps(ItemAdapter(item).asdict()) + "\n"
         self.file.write(line)
+        for field in item.fields:
+            item.setdefault(field, None)
+
         if isinstance(item, Moive):
             self.handleMoiveItem(item)
+        elif isinstance(item, Director):
+            self.handleDirectorItem(item)
+        elif isinstance(item, Actor):
+            self.handleActorItem(item)
+        elif isinstance(item, Scenarist):
+            self.handleScenaristItem(item)
         return item
 
     def handleMoiveItem(self, mItem):
         # Add a movie item to database
         con = sqlite3.connect(self.db_file)
         cur = con.cursor()
-        # params = [int(time.time())]
-
-
-
         cur.execute('''insert into movie(id,name,directors,scenarists,actors,
         style,year,releaseDate,area,language,length,otherNames,score,synopsis,
         imdb,doubanUrl,posterUrl,iconUrl)
@@ -63,17 +68,88 @@ class DoubanmoviespiderPipeline:
             mItem['posterUrl'],
             mItem['iconUrl']
         ))
-        # cur.execute("insert into user values(NULL, 'Hut', 'Stoull', 'chang@12.com', 1, '1214555', 'Buttflay', ?)",
-        #             params)
-
-
-
-        # cur.execute(
-        #     "insert into user(name, alias, email, gender, phoneNumber, introduction) values('Kevin', 'Stoull', 'chang@12.com', 1, '1214555', 'Buttflay')")
         con.commit()
         cur.close()
 
-        # 判断一个文件是否是SQLite3文件
+    def handleDirectorItem(self, dItem):
+        # Add a director item to database
+        con = sqlite3.connect(self.db_file)
+        cur = con.cursor()
+        cur.execute('''insert into director(id, name, gender, zodiac, livingTime, birthday, 
+        leaveday, birthplace, occupation, names_cn, names_en, family, imdb, intro, photoUrl)
+         values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? ,?, ?, ?)''',(
+            dItem['d_id'],
+            dItem['name'],
+            dItem['gender'],
+            dItem['zodiac'],
+            dItem['livingTime'],
+            dItem['birthday'],
+            dItem['leaveday'],
+            dItem['birthplace'],
+            dItem['occupation'],
+            dItem['names_cn'],
+            dItem['names_en'],
+            dItem['family'],
+            dItem['imdb'],
+            dItem['intro'],
+            dItem['photoUrl']
+        ))
+        con.commit()
+        cur.close()
+
+    def handleActorItem(self, dItem):
+        # Add a director item to database
+        con = sqlite3.connect(self.db_file)
+        cur = con.cursor()
+        cur.execute('''insert into actor(id, name, gender, zodiac, livingTime, birthday, 
+         leaveday, birthplace, occupation, names_cn, names_en, family, imdb, intro, photoUrl)
+          values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? ,?, ?, ?)''', (
+            dItem['d_id'],
+            dItem['name'],
+            dItem['gender'],
+            dItem['zodiac'],
+            dItem['livingTime'],
+            dItem['birthday'],
+            dItem['leaveday'],
+            dItem['birthplace'],
+            dItem['occupation'],
+            dItem['names_cn'],
+            dItem['names_en'],
+            dItem['family'],
+            dItem['imdb'],
+            dItem['intro'],
+            dItem['photoUrl']
+        ))
+        con.commit()
+        cur.close()
+
+    def handleScenaristItem(self, dItem):
+        # Add a Scenarist item to database
+        con = sqlite3.connect(self.db_file)
+        cur = con.cursor()
+        cur.execute('''insert into scenarist(id, name, gender, zodiac, livingTime, birthday, 
+         leaveday, birthplace, occupation, names_cn, names_en, family, imdb, intro, photoUrl)
+          values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? ,?, ?, ?)''', (
+            dItem['d_id'],
+            dItem['name'],
+            dItem['gender'],
+            dItem['zodiac'],
+            dItem['livingTime'],
+            dItem['birthday'],
+            dItem['leaveday'],
+            dItem['birthplace'],
+            dItem['occupation'],
+            dItem['names_cn'],
+            dItem['names_en'],
+            dItem['family'],
+            dItem['imdb'],
+            dItem['intro'],
+            dItem['photoUrl']
+        ))
+        con.commit()
+        cur.close()
+
+    # 判断一个文件是否是SQLite3文件
     def isSQLite3File(self, filePath):
         if os.path.isfile(filePath):
             if os.path.getsize(filePath) > 100:
@@ -84,21 +160,6 @@ class DoubanmoviespiderPipeline:
                         return True
         return False
 
-    # 增加一些测试的用户数据
-    def insertUser(self):
-        con = sqlite3.connect(self.db_file)
-        cur = con.cursor()
-        params = [int(time.time())]
-        cur.execute("insert into user values(NULL, 'Hut', 'Stoull', 'chang@12.com', 1, '1214555', 'Buttflay', ?)",
-                    params)
-        cur.execute(
-            "insert into user(name, alias, email, gender, phoneNumber, introduction) values('Kevin', 'Stoull', 'chang@12.com', 1, '1214555', 'Buttflay')")
-        con.commit()
-        cur.close()
-
-    def closeDataBase(self):
-        self.connect.commit()
-        self.connect.close()
 
     # 建表及其关系
     def initialDataBase(self):

@@ -25,10 +25,13 @@ class QuotesSpider(scrapy.Spider):
 # 詹姆斯·卡梅隆 James Cameron：健在
 # https://movie.douban.com/celebrity/1022571/
 
+# 张国荣 Leslie Cheung 已故
+# https://movie.douban.com/celebrity/1003494/
+
 
     def start_requests(self):
         urls = [
-            'https://movie.douban.com/subject/1293764/'
+            'https://movie.douban.com/subject/1292052/'
         ]
         for url in urls:
             yield scrapy.Request(url=url, callback=self.parse)
@@ -49,7 +52,7 @@ class QuotesSpider(scrapy.Spider):
                     director_names = dire_name
                 director_list.append({"id": dire_id, "name": dire_name, "path": dire_path})
                 print(f'Before yield director follow: {dire_path}')
-                # yield response.follow(dire_path, callback=self.parseCelebrity)
+                yield response.follow(dire_path, callback=self.parseCelebrity)
 
         # 编剧
         scen_list = []
@@ -66,7 +69,7 @@ class QuotesSpider(scrapy.Spider):
                     scen_names = scen_name
                 scen_list.append({"id": dire_id, "name": dire_name, "path": scen_path})
                 print(f'Before yield scen_list follow: {scen_path}')
-                # yield response.follow(scen_path, callback=self.parseCelebrity)
+                yield response.follow(scen_path, callback=self.parseScenarist)
 
         # # 演员
         acotor_list = []
@@ -83,8 +86,7 @@ class QuotesSpider(scrapy.Spider):
                     acotor_names = actor_name
                 acotor_list.append({"id": dire_id, "name": dire_name, "path": actor_path})
                 print(f'Before yield acotor_list follow: {actor_path}')
-                # yield response.follow(actor_path, callback=self.parseCelebrity)
-
+                yield response.follow(actor_path, callback=self.parseAcotor)
 
         # 解析电影信息
         movie_id = response.url.split('/')[4]
@@ -104,7 +106,8 @@ class QuotesSpider(scrapy.Spider):
         score_float = float(score)
         synopsis = response.xpath('//span[@property="v:summary"]/text()').getall()
         synopsisStr = "".join(synopsis)
-        synopsisStr = re.sub(r"^\s+", "", synopsisStr)  # 移除值中的所有空格及换行
+        synopsisStr = synopsisStr.strip() # 移除说明中的多有的空格及换行
+        synopsisStr = re.sub(r"[\n\t]*", "", synopsisStr)  # 移除说明中的多有的空格及换行
         imdb = info_br_sibling_html[-2] #17
         if otherNames == imdb:
             otherNames=""
@@ -131,15 +134,20 @@ class QuotesSpider(scrapy.Spider):
         print(f'movie 对象: {movie}')
         yield movie
 
+    # 解析导演信息
     def parseCelebrity(self, response):
         director_id = response.url.split('/')[4]
         director_name = response.xpath('//div[@id="content"]/h1/text()').get()
         photoUrl = response.xpath('//div[@class="nbg"]/img').xpath('@src').get()
 
-        introArray = response.xpath('//span[@class="short"]/text()').getall()
+        introArray = response.xpath('//span[@class="all hidden"]/text()').getall()
+        if len(introArray) == 0:
+            introArray = response.xpath('//span[@class="short"]/text()').getall()
         intro = "".join(introArray)
-        if intro is None:
+        if len(introArray) == 0:
             intro = response.xpath('//div[@class="bd"]/text()').getall()[4]
+        intro = intro.strip() # 移除说明中的多有的空格及换行
+        intro = re.sub(r"[\n\t]*", "", intro)  # 移除说明中的多有的空格及换行
 
         director = Director(d_id=director_id, name=director_name)
         
@@ -148,34 +156,40 @@ class QuotesSpider(scrapy.Spider):
             li_name = li.css('span::text').get()
             li_value_str = li.css('li::text').getall()[1]
             li_value = re.sub(r"[\n\t\s:]*", "", li_value_str) # 移除值中的所有空格及换行
-            print(f'xxxLi: {li_name} : {li_value}')
             if li_name == "性别":
                 director['gender'] = li_value
             elif li_name == "星座":
                 director['zodiac'] = li_value
             elif li_name == "出生日期":
                 director['livingTime'] = li_value
-
+                li_value = re.sub(r"[+]", "", li_value)
+                # 1925年08月29日 形式
                 dateString = re.sub(r"[^0-9]", "-", li_value)
                 dateString = dateString[:-1]
-                datetime_obj = datetime.strptime(dateString, '%Y-%m-%d')
+                if len(dateString) == 4:
+                    # 1925年 形式
+                    datetime_obj = datetime.strptime(dateString, '%Y')
+                else:
+                    datetime_obj = datetime.strptime(dateString, '%Y-%m-%d')
                 director['birthday'] = time.mktime(datetime_obj.timetuple())
-
             elif li_name == "生卒日期":
                 director['livingTime'] = li_value
+                li_value = re.sub(r"[+]", "", li_value)
+                # +1903年12月12日 至 +1963年12月12日 及 1956年09月12日 至 2003年04月01日 形式
                 dateStrArray = li_value.split('至')
                 dateRawString1 = dateStrArray[0]
                 dateRawString2 = dateStrArray[1]
                 dateString1 = re.sub(r"[^0-9]", "-", dateRawString1)
                 dateString2 = re.sub(r"[^0-9]", "-", dateRawString2)
-                dateString1 = dateString1[1:-1]
-                dateString2 = dateString2[1:-1]
+                dateString1 = dateString1[0:-1]
+                dateString2 = dateString2[0:-1]
                 datetime_object1 = datetime.strptime(dateString1, '%Y-%m-%d')
                 datetime_object2 = datetime.strptime(dateString2, '%Y-%m-%d')
                 birthday = time.mktime(datetime_object1.timetuple())
                 leaveday = time.mktime(datetime_object2.timetuple())
-                director['birthday'] = li_value
-                director['leaveday'] = li_value
+                director['birthday'] = birthday
+                director['leaveday'] = leaveday
+
             elif li_name == "出生地":
                 director['birthplace'] = li_value
             elif li_name == "职业":
@@ -188,16 +202,151 @@ class QuotesSpider(scrapy.Spider):
                 director['family'] = li_value
             elif li_name == "imdb编号":
                 director['imdb'] = li.css('a::text').get()
-
         director['photoUrl'] = photoUrl
         director['intro'] = intro
-
-
-        print(f'xxxxxxx {director}')
         yield director
-    def parseActor(self, response):
-        pass
 
+    # 解析演员信息
+    def parseAcotor(self, response):
+        director_id = response.url.split('/')[4]
+        director_name = response.xpath('//div[@id="content"]/h1/text()').get()
+        photoUrl = response.xpath('//div[@class="nbg"]/img').xpath('@src').get()
 
+        introArray = response.xpath('//span[@class="short"]/text()').getall()
+        intro = "".join(introArray)
+        if intro is None:
+            intro = response.xpath('//div[@class="bd"]/text()').getall()[4]
+        intro = intro.strip()  # 移除说明中的多有的空格及换行
+        intro = re.sub(r"[\n\t]*", "", intro)  # 移除说明中的多有的空格及换行
+
+        director = Actor(d_id=director_id, name=director_name)
+
+        all_info_li_html = response.xpath('//div[@class="info"]/ul/li')
+        for li in all_info_li_html:
+            li_name = li.css('span::text').get()
+            li_value_str = li.css('li::text').getall()[1]
+            li_value = re.sub(r"[\n\t\s:]*", "", li_value_str)  # 移除值中的所有空格及换行
+            if li_name == "性别":
+                director['gender'] = li_value
+            elif li_name == "星座":
+                director['zodiac'] = li_value
+            elif li_name == "出生日期":
+                director['livingTime'] = li_value
+                li_value = re.sub(r"[+]", "", li_value)
+                # 1925年08月29日 形式
+                dateString = re.sub(r"[^0-9]", "-", li_value)
+                dateString = dateString[:-1]
+                # 1925年 形式
+                if len(dateString) == 4:
+                    datetime_obj = datetime.strptime(dateString, '%Y')
+                else:
+                    datetime_obj = datetime.strptime(dateString, '%Y-%m-%d')
+                director['birthday'] = time.mktime(datetime_obj.timetuple())
+            elif li_name == "生卒日期":
+                director['livingTime'] = li_value
+                li_value = re.sub(r"[+]", "", li_value)
+                # +1903年12月12日 至 +1963年12月12日 及 1956年09月12日 至 2003年04月01日 形式
+
+                dateStrArray = li_value.split('至')
+                dateRawString1 = dateStrArray[0]
+                dateRawString2 = dateStrArray[1]
+                dateString1 = re.sub(r"[^0-9]", "-", dateRawString1)
+                dateString2 = re.sub(r"[^0-9]", "-", dateRawString2)
+                dateString1 = dateString1[0:-1]
+                dateString2 = dateString2[0:-1]
+                datetime_object1 = datetime.strptime(dateString1, '%Y-%m-%d')
+                datetime_object2 = datetime.strptime(dateString2, '%Y-%m-%d')
+                birthday = time.mktime(datetime_object1.timetuple())
+                leaveday = time.mktime(datetime_object2.timetuple())
+                director['birthday'] = birthday
+                director['leaveday'] = leaveday
+
+            elif li_name == "出生地":
+                director['birthplace'] = li_value
+            elif li_name == "职业":
+                director['occupation'] = li_value
+            elif li_name == "更多外文名":
+                director['names_en'] = li_value
+            elif li_name == "更多中文名":
+                director['names_cn'] = li_value
+            elif li_name == "家庭成员":
+                director['family'] = li_value
+            elif li_name == "imdb编号":
+                director['imdb'] = li.css('a::text').get()
+        director['photoUrl'] = photoUrl
+        director['intro'] = intro
+        yield director
+
+    # 解析编剧信息
+    def parseScenarist(self, response):
+        director_id = response.url.split('/')[4]
+        director_name = response.xpath('//div[@id="content"]/h1/text()').get()
+        photoUrl = response.xpath('//div[@class="nbg"]/img').xpath('@src').get()
+
+        introArray = response.xpath('//span[@class="short"]/text()').getall()
+        intro = "".join(introArray)
+        if intro is None:
+            intro = response.xpath('//div[@class="bd"]/text()').getall()[4]
+        intro = intro.strip()  # 移除说明中的多有的空格及换行
+        intro = re.sub(r"[\n\t]*", "", intro)  # 移除说明中的多有的空格及换行
+
+        director = Scenarist(d_id=director_id, name=director_name)
+
+        all_info_li_html = response.xpath('//div[@class="info"]/ul/li')
+        for li in all_info_li_html:
+            li_name = li.css('span::text').get()
+            li_value_str = li.css('li::text').getall()[1]
+            li_value = re.sub(r"[\n\t\s:]*", "", li_value_str)  # 移除值中的所有空格及换行
+            if li_name == "性别":
+                director['gender'] = li_value
+            elif li_name == "星座":
+                director['zodiac'] = li_value
+            elif li_name == "出生日期":
+                director['livingTime'] = li_value
+                li_value = re.sub(r"[+]", "", li_value)
+                # 1925年08月29日 形式
+                dateString = re.sub(r"[^0-9]", "-", li_value)
+                dateString = dateString[:-1]
+                # 1925年 形式
+                if len(dateString) == 4:
+                    datetime_obj = datetime.strptime(dateString, '%Y')
+                else:
+                    datetime_obj = datetime.strptime(dateString, '%Y-%m-%d')
+                director['birthday'] = time.mktime(datetime_obj.timetuple())
+
+            elif li_name == "生卒日期":
+                director['livingTime'] = li_value
+                li_value = re.sub(r"[+]", "", li_value)
+                # +1903年12月12日 至 +1963年12月12日 及 1956年09月12日 至 2003年04月01日 形式
+
+                dateStrArray = li_value.split('至')
+                dateRawString1 = dateStrArray[0]
+                dateRawString2 = dateStrArray[1]
+                dateString1 = re.sub(r"[^0-9]", "-", dateRawString1)
+                dateString2 = re.sub(r"[^0-9]", "-", dateRawString2)
+                dateString1 = dateString1[0:-1]
+                dateString2 = dateString2[0:-1]
+                datetime_object1 = datetime.strptime(dateString1, '%Y-%m-%d')
+                datetime_object2 = datetime.strptime(dateString2, '%Y-%m-%d')
+                birthday = time.mktime(datetime_object1.timetuple())
+                leaveday = time.mktime(datetime_object2.timetuple())
+                director['birthday'] = birthday
+                director['leaveday'] = leaveday
+
+            elif li_name == "出生地":
+                director['birthplace'] = li_value
+            elif li_name == "职业":
+                director['occupation'] = li_value
+            elif li_name == "更多外文名":
+                director['names_en'] = li_value
+            elif li_name == "更多中文名":
+                director['names_cn'] = li_value
+            elif li_name == "家庭成员":
+                director['family'] = li_value
+            elif li_name == "imdb编号":
+                director['imdb'] = li.css('a::text').get()
+        director['photoUrl'] = photoUrl
+        director['intro'] = intro
+        yield director
 
 

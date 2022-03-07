@@ -30,6 +30,16 @@ user_agent_list = [
     'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:59.0) Gecko/20100101 Firefox/59.0'
 ]
 
+proxy_ip_list = ['175.154.213.82','182.96.242.80']
+
+def get_random_proxyUrl():
+    # proxyaddr = "175.42.18.149"    #代理IP地址
+    proxyaddr = random.choice(proxy_ip_list)
+    proxyport = 57114               #代理IP端口
+    proxyusernm = ""        #代理帐号
+    proxypasswd = ""        #代理密码
+    proxyurl="http://"+proxyusernm+":"+proxypasswd+"@"+proxyaddr+":"+"%d"%proxyport
+    return proxyurl
 
 def get_random_agent():
     return random.choice(user_agent_list)

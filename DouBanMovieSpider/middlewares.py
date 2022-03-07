@@ -8,6 +8,8 @@ from scrapy import signals
 # useful for handling different item types with a single interface
 from itemadapter import is_item, ItemAdapter
 
+# 代理相关
+from DouBanMovieSpider.utils import get_random_proxyUrl
 
 class DoubanmoviespiderSpiderMiddleware:
     # Not all methods need to be defined. If a method is not defined,
@@ -78,6 +80,10 @@ class DoubanmoviespiderDownloaderMiddleware:
         # - or return a Request object
         # - or raise IgnoreRequest: process_exception() methods of
         #   installed downloader middleware will be called
+
+        # proxyurl = get_random_proxyUrl()
+        # request.meta['proxy'] = proxyurl
+
         return None
 
     def process_response(self, request, response, spider):

@@ -71,6 +71,7 @@ response.xpath('//span[@property="v:summary"]/text()').get()
 
 `scrapy shell -s USER_AGENT='Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like Gecko' 'https://movie.douban.com/subject/1292052/'`
 
+`scrapy shell -s USER_AGENT='Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like Gecko' 'https://movie.douban.com/subject/34888057/'`
 
 ## 人物页
 
@@ -110,6 +111,7 @@ response.xpath('//div[@id="content"]/h1/text()').get()
 | length | INTEGER | 时长 |
 | otherNames | VARCHAR(100) | 别名 |
 | score | NUMERIC | 评分 |
+| ratingPeople | NUMERIC | 评价人数 |
 | synopsis | TEXT | 简介 |
 | imdb | VARCHAR(20) | IMDb |
 | doubanUrl | VARCHAR(250) | 对应豆瓣的url |

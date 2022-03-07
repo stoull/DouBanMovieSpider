@@ -25,6 +25,7 @@ class Moive(scrapy.Item):
     length = scrapy.Field()
     otherNames = scrapy.Field()
     score = scrapy.Field()
+    ratingPeople = scrapy.Field()
     synopsis = Field(serializer=str)
     imdb = scrapy.Field()
     doubanUrl = scrapy.Field()

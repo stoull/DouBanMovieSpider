@@ -5,6 +5,8 @@ from datetime import datetime
 
 from DouBanMovieSpider.items import Moive, Celebrity
 from scrapy.loader import ItemLoader
+# 代理相关
+from DouBanMovieSpider.utils import get_random_proxyUrl
 
 class QuotesSpider(scrapy.Spider):
     name = "movie"
@@ -15,7 +17,7 @@ class QuotesSpider(scrapy.Spider):
 
 # 'https://movie.douban.com/subject/1291546/' 霸王别姬
 
-# 'https://movie.douban.com/subject/1292722/' 泰坦尼克号
+# 'https://movie.douban.com/subject/1292722/' 泰坦尼克号 x
 
 # 'https://movie.douban.com/subject/1291568/' 东京物语 東京物語
 
@@ -30,13 +32,20 @@ class QuotesSpider(scrapy.Spider):
 # 张国荣 Leslie Cheung 已故
 # https://movie.douban.com/celebrity/1003494/
 
+# 东山千荣子 Chieko Higashiyama UNIX时间表示不了
+# https://movie.douban.com/celebrity/1029130/
+
+# 证明你是人类
+# https://www.douban.com/misc/sorry?original-url=https%3A%2F%2Fmovie.douban.com%2Fcelebrity%2F1049909%2F
+
 
     def start_requests(self):
         urls = [
-            'https://movie.douban.com/subject/1292722/'
+            'https://movie.douban.com/celebrity/1029130/'
         ]
         for url in urls:
-            yield scrapy.Request(url=url, callback=self.parse)
+            proxyurl = get_random_proxyUrl()
+            yield scrapy.Request(url=url, callback=self.parseCelebrity, meta={'proxy': proxyurl})
 
     def parse(self, response):
         movie_id = response.url.split('/')[4]
@@ -55,7 +64,8 @@ class QuotesSpider(scrapy.Spider):
                 else:
                     director_names = dire_name
                 director_list.append({"id": dire_id, "name": dire_name, "path": dire_path})
-                yield response.follow(dire_path, callback=self.parseCelebrity, meta={'movie_id': movie_id, 'type': 'Director'})
+                proxyurl = get_random_proxyUrl()
+                yield response.follow(dire_path, callback=self.parseCelebrity, meta={'movie_id': movie_id, 'type': 'Director', 'proxy': proxyurl})
 
         # 编剧
         scen_list = []
@@ -71,7 +81,8 @@ class QuotesSpider(scrapy.Spider):
                 else:
                     scen_names = scen_name
                 scen_list.append({"id": dire_id, "name": dire_name, "path": scen_path})
-                yield response.follow(scen_path, callback=self.parseCelebrity, meta={'movie_id': movie_id, 'type': 'Scenarist'})
+                proxyurl = get_random_proxyUrl()
+                yield response.follow(scen_path, callback=self.parseCelebrity, meta={'movie_id': movie_id, 'type': 'Scenarist', 'proxy': proxyurl})
 
         # # 演员
         acotor_list = []
@@ -87,7 +98,8 @@ class QuotesSpider(scrapy.Spider):
                 else:
                     acotor_names = actor_name
                 acotor_list.append({"id": dire_id, "name": dire_name, "path": actor_path})
-                yield response.follow(actor_path, callback=self.parseCelebrity, meta={'movie_id': movie_id, 'type': 'Actor'})
+                proxyurl = get_random_proxyUrl()
+                yield response.follow(actor_path, callback=self.parseCelebrity, meta={'movie_id': movie_id, 'type': 'Actor', 'proxy': proxyurl})
 
         # 解析电影信息
         movie_name = response.xpath('//span[@property="v:itemreviewed"]/text()').get()
@@ -103,7 +115,9 @@ class QuotesSpider(scrapy.Spider):
         otherNames = info_br_sibling_html[area_index+9] # 15
         score = response.xpath('//strong[@class="ll rating_num"]/text()').get()
         lenght = response.xpath('//span[@property="v:runtime"]').xpath('@content').get()
+        ratingPeople = response.xpath('//span[@property="v:votes"]/text()').get()
         score_float = float(score)
+        ratingPeople_int = int(ratingPeople)
         synopsis = response.xpath('//span[@property="v:summary"]/text()').getall()
         synopsisStr = "".join(synopsis)
         synopsisStr = synopsisStr.strip() # 移除说明中的多有的空格及换行
@@ -123,6 +137,7 @@ class QuotesSpider(scrapy.Spider):
         movie['length'] = int(lenght)
         movie['otherNames'] = otherNames[1:] # 移除最前面的空格
         movie['score'] = score_float
+        movie['ratingPeople'] = ratingPeople_int
         movie['synopsis'] = synopsisStr
         movie['imdb'] = imdb[1:] # 移除最前面的空格
         movie['doubanUrl'] = doubanUrl
@@ -145,7 +160,12 @@ class QuotesSpider(scrapy.Spider):
             introArray = response.xpath('//span[@class="short"]/text()').getall()
         intro = "".join(introArray)
         if len(introArray) == 0:
-            intro = response.xpath('//div[@class="bd"]/text()').getall()[4]
+            bdContent = response.xpath('//div[@class="bd"]/text()').getall()
+            if len(bdContent) > 4:
+                intro = bdContent[4]
+            else:
+                intro = None
+
         intro = intro.strip() # 移除说明中的多有的空格及换行
         intro = re.sub(r"[\n\t]*", "", intro)  # 移除说明中的多有的空格及换行
 
@@ -185,15 +205,20 @@ class QuotesSpider(scrapy.Spider):
                 director['birthday'] = time.mktime(datetime_obj.timetuple())
             elif li_name == "生卒日期":
                 director['livingTime'] = li_value
-                li_value = re.sub(r"[+]", "", li_value)
-                # +1903年12月12日 至 +1963年12月12日 及 1956年09月12日 至 2003年04月01日 形式
+                print(f"生卒日期: {li_value}")
+                li_value = re.sub(r"[ +]", "", li_value)
+                print(f"生卒日期2: {li_value}")
+                # +1903年12月12日 至 +1963年12月12日 及 1956年09月12日 至 2003年04月01日 形式 1890年09月30日 至 1980年05月08日
                 dateStrArray = li_value.split('至')
+                print(f"生卒日期3: {dateStrArray}")
                 dateRawString1 = dateStrArray[0]
                 dateRawString2 = dateStrArray[1]
                 dateString1 = re.sub(r"[^0-9]", "-", dateRawString1)
                 dateString2 = re.sub(r"[^0-9]", "-", dateRawString2)
+                print(f"生卒日期4: {dateString1} {dateString2}")
                 dateString1 = dateString1[0:-1]
                 dateString2 = dateString2[0:-1]
+                print(f"生卒日期5: {dateString1} {dateString2}")
                 datetime_object1 = datetime.strptime(dateString1, '%Y-%m-%d')
                 datetime_object2 = datetime.strptime(dateString2, '%Y-%m-%d')
                 birthday = time.mktime(datetime_object1.timetuple())

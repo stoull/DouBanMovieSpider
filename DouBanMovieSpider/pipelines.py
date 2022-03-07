@@ -43,9 +43,9 @@ class DoubanmoviespiderPipeline:
 
         # Save the information of movie
         cur.execute('''INSERT OR IGNORE INTO movie(id,name,directors,scenarists,actors,
-        style,year,releaseDate,area,language,length,otherNames,score,synopsis,
+        style,year,releaseDate,area,language,length,otherNames,score,ratingPeople,synopsis,
         imdb,doubanUrl,posterUrl,iconUrl)
-         values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)''',(
+         values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)''',(
             mItem['m_id'],
             mItem['name'],
             mItem['directors'],
@@ -59,6 +59,7 @@ class DoubanmoviespiderPipeline:
             mItem['length'],
             mItem['otherNames'],
             mItem['score'],
+            mItem['ratingPeople'],
             mItem['synopsis'],
             mItem['imdb'],
             mItem['doubanUrl'],
@@ -289,6 +290,7 @@ class DoubanmoviespiderPipeline:
             length INTEGER,
             otherNames VARCHAR(100),
             score NUMERIC,
+            ratingPeople NUMERIC,
             synopsis TEXT,
             imdb VARCHAR(20),
             doubanUrl VARCHAR(250),

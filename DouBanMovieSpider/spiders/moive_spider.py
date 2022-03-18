@@ -4,115 +4,75 @@ import time
 from datetime import datetime
 
 from DouBanMovieSpider.items import Moive, Celebrity
-from scrapy.loader import ItemLoader
-# 代理相关
-from DouBanMovieSpider.utils import get_random_proxyUrl
+
 
 class QuotesSpider(scrapy.Spider):
     name = "movie"
-
-# 'https://movie.douban.com/subject/1440347/' 修罗雪姬 少演员
-
-# 'https://movie.douban.com/subject/1292052/' 肖申克的救赎 两编剧
-
-# 'https://movie.douban.com/subject/1291546/' 霸王别姬
-
-# 'https://movie.douban.com/subject/1292722/' 泰坦尼克号 x
-
-# 'https://movie.douban.com/subject/1291568/' 东京物语 東京物語
-
-# ‘https://movie.douban.com/subject/1293764/’ 与狼共舞  无又名
-
-# 小津安二郎 Yasujirô Ozu： 已故
-# https://movie.douban.com/celebrity/1036727/
-
-# 詹姆斯·卡梅隆 James Cameron：健在
-# https://movie.douban.com/celebrity/1022571/
-
-# 张国荣 Leslie Cheung 已故
-# https://movie.douban.com/celebrity/1003494/
-
-# 东山千荣子 Chieko Higashiyama UNIX时间表示不了
-# https://movie.douban.com/celebrity/1029130/
-
-# 证明你是人类
-# https://www.douban.com/misc/sorry?original-url=https%3A%2F%2Fmovie.douban.com%2Fcelebrity%2F1049909%2F
-
 
     def start_requests(self):
         urls = [
             'https://movie.douban.com/celebrity/1029130/'
         ]
         for url in urls:
-            proxyurl = get_random_proxyUrl()
-            yield scrapy.Request(url=url, callback=self.parseCelebrity, meta={'proxy': proxyurl})
+            yield scrapy.Request(url=url, callback=self.parseCelebrity)
 
     def parse(self, response):
         movie_id = response.url.split('/')[4]
 
         # 获取导演信息
-        director_list = []
         director_names = ""
         dire_info_html = response.xpath('//div[@id="info"]/span')[0].css('a')
         for dire_html in dire_info_html:
             dire_name = dire_html.css('a::text').get()
             dire_path = dire_html.css('a::attr(href)').get()
             if 'celebrity/' in dire_path:
-                dire_id = dire_path.split('/')[2]
+                # dire_id = dire_path.split('/')[2]
                 if director_names:
                     director_names = director_names + ", " + dire_name
                 else:
                     director_names = dire_name
-                director_list.append({"id": dire_id, "name": dire_name, "path": dire_path})
-                proxyurl = get_random_proxyUrl()
-                yield response.follow(dire_path, callback=self.parseCelebrity, meta={'movie_id': movie_id, 'type': 'Director', 'proxy': proxyurl})
+                yield response.follow(dire_path, callback=self.parseCelebrity, meta={'movie_id': movie_id, 'type': 'Director'})
 
         # 编剧
-        scen_list = []
         scen_names = ""
         scen_info_html = response.xpath('//div[@id="info"]/span')[1].css('a')
         for scen_html in scen_info_html:
             scen_name = scen_html.css('a::text').get()
             scen_path = scen_html.css('a::attr(href)').get()
             if 'celebrity/' in scen_path:
-                scen_id = scen_path.split('/')[2]
+                # scen_id = scen_path.split('/')[2]
                 if scen_names:
                     scen_names = scen_names + ", " + scen_name
                 else:
                     scen_names = scen_name
-                scen_list.append({"id": dire_id, "name": dire_name, "path": scen_path})
-                proxyurl = get_random_proxyUrl()
-                yield response.follow(scen_path, callback=self.parseCelebrity, meta={'movie_id': movie_id, 'type': 'Scenarist', 'proxy': proxyurl})
+                yield response.follow(scen_path, callback=self.parseCelebrity, meta={'movie_id': movie_id, 'type': 'Scenarist'})
 
         # # 演员
-        acotor_list = []
         acotor_names = ""
         actor_info_html = response.xpath('//div[@id="info"]/span')[2].css('a')
         for actor_html in actor_info_html:
             actor_name = actor_html.css('a::text').get()
             actor_path = actor_html.css('a::attr(href)').get()
             if 'celebrity/' in actor_path:
-                actor_id = actor_path.split('/')[2]
+                # actor_id = actor_path.split('/')[2]
                 if acotor_names:
                     acotor_names = acotor_names + ", " + actor_name
                 else:
                     acotor_names = actor_name
-                acotor_list.append({"id": dire_id, "name": dire_name, "path": actor_path})
-                proxyurl = get_random_proxyUrl()
-                yield response.follow(actor_path, callback=self.parseCelebrity, meta={'movie_id': movie_id, 'type': 'Actor', 'proxy': proxyurl})
+                yield response.follow(actor_path, callback=self.parseCelebrity, meta={'movie_id': movie_id, 'type': 'Actor'})
 
         # 解析电影信息
         movie_name = response.xpath('//span[@property="v:itemreviewed"]/text()').get()
         year_String = response.xpath('//span[@class="year"]/text()').get()
-        year_int = int(re.sub('[()]', '', year_String)) # 移除（）并转成Int
+        year_int = int(re.sub('[()]', '', year_String))  # 移除（）并转成Int
         types = response.xpath('//span[@property="v:genre"]/text()').getall()
         release_dates = response.xpath('//span[@property="v:initialReleaseDate"]/text()').getall()
         info_br_sibling_html = response.xpath('//div[@id="info"]/br/following-sibling::text()').getall()
 
         area_index = 4+len(types)
         area = info_br_sibling_html[area_index]
-        languages = info_br_sibling_html[area_index+2] # 8
-        otherNames = info_br_sibling_html[area_index+9] # 15
+        languages = info_br_sibling_html[area_index+2]  # 8
+        otherNames = info_br_sibling_html[area_index+9]  # 15
         score = response.xpath('//strong[@class="ll rating_num"]/text()').get()
         lenght = response.xpath('//span[@property="v:runtime"]').xpath('@content').get()
         ratingPeople = response.xpath('//span[@property="v:votes"]/text()').get()
@@ -120,11 +80,11 @@ class QuotesSpider(scrapy.Spider):
         ratingPeople_int = int(ratingPeople)
         synopsis = response.xpath('//span[@property="v:summary"]/text()').getall()
         synopsisStr = "".join(synopsis)
-        synopsisStr = synopsisStr.strip() # 移除说明中的多有的空格及换行
-        synopsisStr = re.sub(r"[\n\t]*", "", synopsisStr)  # 移除说明中的多有的空格及换行
-        imdb = info_br_sibling_html[-2] #17
+        synopsisStr = synopsisStr.strip()  # 移除说明中的多有的空格及换行
+        synopsisStr = re.sub(r"[\n\t]*", "", synopsisStr)   # 移除说明中的多有的空格及换行
+        imdb = info_br_sibling_html[-2]  # 17
         if otherNames == imdb:
-            otherNames=""
+            otherNames = ""
         doubanUrl = response.url
         iconUrl = response.xpath('//img[@rel="v:image"]').xpath('@src').get()
         posterUrl = "https://img9.doubanio.com/view/photo/l/public/" + iconUrl.split('/')[-1]
@@ -132,19 +92,17 @@ class QuotesSpider(scrapy.Spider):
         movie = Moive(m_id=movie_id, name=movie_name, year=year_int, directors=director_names, scenarists=scen_names, actors=acotor_names)
         movie['style'] = " / ".join(types)
         movie['releaseDate'] = " / ".join(release_dates)
-        movie['area'] = area[1:] # 移除最前面的空格
-        movie['language'] = languages[1:] # 移除最前面的空格
+        movie['area'] = area[1:]  # 移除最前面的空格
+        movie['language'] = languages[1:]  # 移除最前面的空格
         movie['length'] = int(lenght)
-        movie['otherNames'] = otherNames[1:] # 移除最前面的空格
+        movie['otherNames'] = otherNames[1:]  # 移除最前面的空格
         movie['score'] = score_float
         movie['ratingPeople'] = ratingPeople_int
         movie['synopsis'] = synopsisStr
-        movie['imdb'] = imdb[1:] # 移除最前面的空格
+        movie['imdb'] = imdb[1:]  # 移除最前面的空格
         movie['doubanUrl'] = doubanUrl
         movie['posterUrl'] = posterUrl
         movie['iconUrl'] = iconUrl
-
-
         # https://docs.scrapy.org/en/latest/topics/request-response.html
         print(f'movie 对象: {movie}')
         yield movie
@@ -166,7 +124,7 @@ class QuotesSpider(scrapy.Spider):
             else:
                 intro = None
 
-        intro = intro.strip() # 移除说明中的多有的空格及换行
+        intro = intro.strip()  # 移除说明中的多有的空格及换行
         intro = re.sub(r"[\n\t]*", "", intro)  # 移除说明中的多有的空格及换行
 
         movie_id = response.meta.get('movie_id')
@@ -186,7 +144,7 @@ class QuotesSpider(scrapy.Spider):
         for li in all_info_li_html:
             li_name = li.css('span::text').get()
             li_value_str = li.css('li::text').getall()[1]
-            li_value = re.sub(r"[\n\t\s:]*", "", li_value_str) # 移除值中的所有空格及换行
+            li_value = re.sub(r"[\n\t\s:]*", "", li_value_str)  # 移除值中的所有空格及换行
             if li_name == "性别":
                 director['gender'] = li_value
             elif li_name == "星座":
@@ -241,4 +199,3 @@ class QuotesSpider(scrapy.Spider):
         director['photoUrl'] = photoUrl
         director['intro'] = intro
         yield director
-

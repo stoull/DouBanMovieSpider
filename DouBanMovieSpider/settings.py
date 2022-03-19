@@ -9,8 +9,6 @@
 
 from DouBanMovieSpider.utils import get_random_agent
 
-USER_AGENT = get_random_agent()
-
 BOT_NAME = 'DouBanMovieSpider'
 
 SPIDER_MODULES = ['DouBanMovieSpider.spiders']
@@ -19,6 +17,7 @@ NEWSPIDER_MODULE = 'DouBanMovieSpider.spiders'
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 #USER_AGENT = 'DouBanMovieSpider (+http://www.yourdomain.com)'
+USER_AGENT = get_random_agent()
 
 # Obey robots.txt rules
 ROBOTSTXT_OBEY = True
@@ -54,9 +53,10 @@ ROBOTSTXT_OBEY = True
 
 # Enable or disable downloader middlewares
 # See https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
-# DOWNLOADER_MIDDLEWARES = {
-#    'DouBanMovieSpider.middlewares.DoubanmoviespiderDownloaderMiddleware': 100,
-# }
+DOWNLOADER_MIDDLEWARES = {
+   'scrapy.downloadermiddlewares.retry.RetryMiddleware': None
+   # 'DouBanMovieSpider.middlewares.DoubanmoviespiderDownloaderMiddleware': 100
+}
 
 # Enable or disable extensions
 # See https://docs.scrapy.org/en/latest/topics/extensions.html

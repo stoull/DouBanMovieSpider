@@ -1,37 +1,52 @@
 import scrapy
 import re
 import time
+import json
 from datetime import datetime
 
 from DouBanMovieSpider.items import Moive, Celebrity
+from DouBanMovieSpider.database import DBManager
 
 
 class QuotesSpider(scrapy.Spider):
     name = "movie"
+    db = DBManager()
 
     def start_requests(self):
         urls = [
-            'https://movie.douban.com/celebrity/1029130/'
+            'https://httpbin.org/ip'
         ]
         for url in urls:
-            yield scrapy.Request(url=url, callback=self.parseCelebrity)
+            yield scrapy.Request(url=url, callback=self.parse, meta={'proxy': '127.0.0.1:9150'})
+            # m_id = int(url.split('/')[4])
+            # if not self.db.isMovieExist(m_id):
+            #     yield scrapy.Request(url=url, callback=self.parseMovie)
+            # else:
+            #     print("Movie Does Exist")
 
     def parse(self, response):
+        jsonresponse = json.loads(response.text)
+        print(jsonresponse)
+
+    def parseMovie(self, response):
         movie_id = response.url.split('/')[4]
 
-        # 获取导演信息
         director_names = ""
         dire_info_html = response.xpath('//div[@id="info"]/span')[0].css('a')
         for dire_html in dire_info_html:
             dire_name = dire_html.css('a::text').get()
             dire_path = dire_html.css('a::attr(href)').get()
             if 'celebrity/' in dire_path:
-                # dire_id = dire_path.split('/')[2]
+                dire_id = int(dire_path.split('/')[2])
                 if director_names:
                     director_names = director_names + ", " + dire_name
                 else:
                     director_names = dire_name
-                yield response.follow(dire_path, callback=self.parseCelebrity, meta={'movie_id': movie_id, 'type': 'Director'})
+                if not self.db.isDirectorExist(dire_id):
+                    yield response.follow(dire_path, callback=self.parseCelebrity,
+                                          meta={'movie_id': movie_id, 'type': 'Director'}, dont_filter=True)
+                else:
+                    print("Director Does Exist")
 
         # 编剧
         scen_names = ""
@@ -40,26 +55,39 @@ class QuotesSpider(scrapy.Spider):
             scen_name = scen_html.css('a::text').get()
             scen_path = scen_html.css('a::attr(href)').get()
             if 'celebrity/' in scen_path:
-                # scen_id = scen_path.split('/')[2]
+                scen_id = int(scen_path.split('/')[2])
                 if scen_names:
                     scen_names = scen_names + ", " + scen_name
                 else:
                     scen_names = scen_name
-                yield response.follow(scen_path, callback=self.parseCelebrity, meta={'movie_id': movie_id, 'type': 'Scenarist'})
+                if not self.db.isScenaristExist(scen_id):
+                    yield response.follow(scen_path, callback=self.parseCelebrity,
+                                          meta={'movie_id': movie_id, 'type': 'Scenarist'}, dont_filter=True)
+                else:
+                    print("Scenarist Does Exist")
 
         # # 演员
-        acotor_names = ""
+        actor_names = ""
         actor_info_html = response.xpath('//div[@id="info"]/span')[2].css('a')
+        maximum_count = 0  # The maximum acotors to crawl
         for actor_html in actor_info_html:
-            actor_name = actor_html.css('a::text').get()
-            actor_path = actor_html.css('a::attr(href)').get()
-            if 'celebrity/' in actor_path:
-                # actor_id = actor_path.split('/')[2]
-                if acotor_names:
-                    acotor_names = acotor_names + ", " + actor_name
-                else:
-                    acotor_names = actor_name
-                yield response.follow(actor_path, callback=self.parseCelebrity, meta={'movie_id': movie_id, 'type': 'Actor'})
+            if maximum_count < 6:
+                actor_name = actor_html.css('a::text').get()
+                actor_path = actor_html.css('a::attr(href)').get()
+                if 'celebrity/' in actor_path:
+                    actor_id = int(actor_path.split('/')[2])
+                    if actor_names:
+                        actor_names = actor_names + ", " + actor_name
+                    else:
+                        actor_names = actor_name
+                    if not self.db.isActorExist(actor_id):
+                        yield response.follow(actor_path, callback=self.parseCelebrity,
+                                          meta={'movie_id': movie_id, 'type': 'Actor'})
+                    else:
+                        print("Actor Does Exist")
+            else:
+                break
+            maximum_count += 1
 
         # 解析电影信息
         movie_name = response.xpath('//span[@property="v:itemreviewed"]/text()').get()
@@ -89,7 +117,7 @@ class QuotesSpider(scrapy.Spider):
         iconUrl = response.xpath('//img[@rel="v:image"]').xpath('@src').get()
         posterUrl = "https://img9.doubanio.com/view/photo/l/public/" + iconUrl.split('/')[-1]
 
-        movie = Moive(m_id=movie_id, name=movie_name, year=year_int, directors=director_names, scenarists=scen_names, actors=acotor_names)
+        movie = Moive(m_id=movie_id, name=movie_name, year=year_int, directors=director_names, scenarists=scen_names, actors=actor_names)
         movie['style'] = " / ".join(types)
         movie['releaseDate'] = " / ".join(release_dates)
         movie['area'] = area[1:]  # 移除最前面的空格

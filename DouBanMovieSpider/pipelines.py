@@ -3,15 +3,13 @@
 # Don't forget to add your pipeline to the ITEM_PIPELINES setting
 # See: https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 
-import sqlite3
-import os
 import json
 
 # useful for handling different item types with a single interface
 from itemadapter import ItemAdapter
 
-from items import Moive, Celebrity
-from database import DBManager
+from DouBanMovieSpider.items import Moive, Celebrity
+from DouBanMovieSpider.database import DBManager
 
 class DoubanmoviespiderPipeline:
 
@@ -20,14 +18,18 @@ class DoubanmoviespiderPipeline:
         self.db_path = self.db.db_file
 
     def open_spider(self, spider):
-        self.file = open('items.json', 'w')
+        # self.file = open('items.json', 'w')
+        pass
 
     def close_spider(self, spider):
-        self.file.close()
+        # self.file.close()
+        pass
 
     def process_item(self, item, spider):
         line = json.dumps(ItemAdapter(item).asdict()) + "\n"
-        self.file.write(line)
+        # self.file.write(line)
+
+        # set default values
         for field in item.fields:
             item.setdefault(field, None)
 

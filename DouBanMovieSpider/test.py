@@ -1,5 +1,5 @@
 
-from database import DBManager
+from DouBanMovieSpider.database import DBManager
 
 
 if __name__ == "__main__":

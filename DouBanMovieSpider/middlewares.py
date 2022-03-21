@@ -81,8 +81,7 @@ class DoubanmoviespiderDownloaderMiddleware:
         # - or raise IgnoreRequest: process_exception() methods of
         #   installed downloader middleware will be called
 
-        # proxyurl = get_random_proxyUrl()
-        # request.meta['proxy'] = proxyurl
+        request.meta['proxy'] = 'http://xxxxxx.com:8080'
 
         return None
 

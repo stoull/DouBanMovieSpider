@@ -14,17 +14,20 @@ class QuotesSpider(scrapy.Spider):
 
     def start_requests(self):
         urls = [
-            'https://httpbin.org/ip'
+            'https://movie.douban.com/subject/1291568/'
         ]
         for url in urls:
-            yield scrapy.Request(url=url, callback=self.parse, meta={'proxy': '127.0.0.1:9150'})
-            # m_id = int(url.split('/')[4])
-            # if not self.db.isMovieExist(m_id):
-            #     yield scrapy.Request(url=url, callback=self.parseMovie)
-            # else:
-            #     print("Movie Does Exist")
+            m_id = int(url.split('/')[4])
+            if not self.db.isMovieExist(m_id):
+                yield scrapy.Request(url=url, callback=self.parseMovie)
+            else:
+                print("Movie Does Exist")
 
-    def parse(self, response):
+        #  test the proxy with ip
+        # yield scrapy.Request(url='https://httpbin.org/ip', callback=self.parseIpLocation)
+
+    #  用于测试代理时的ip地址， https://httpbin.org/ip
+    def parseIpLocation(self, response):
         jsonresponse = json.loads(response.text)
         print(jsonresponse)
 

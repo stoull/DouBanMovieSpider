@@ -22,6 +22,8 @@
 # 东山千荣子 Chieko Higashiyama UNIX时间表示不了
 # https://movie.douban.com/celebrity/1029130/
 
+人机验证页：
+
 # 证明你是人类
 # https://www.douban.com/misc/sorry?original-url=https%3A%2F%2Fmovie.douban.com%2Fcelebrity%2F1049909%2F
 

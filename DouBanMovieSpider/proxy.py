@@ -5,8 +5,8 @@ import time
 url='https://movie.douban.com/subject/1291546/'
 proxyaddr = "183.151.230.217"    #代理IP地址
 proxyport = 57114               #代理IP端口
-proxyusernm = "Hutttt"        #代理帐号
-proxypasswd = "Qepwq302585210"        #代理密码
+proxyusernm = ""        #代理帐号
+proxypasswd = ""        #代理密码
 #name = input();
 proxyurl="http://"+proxyusernm+":"+proxypasswd+"@"+proxyaddr+":"+"%d"%proxyport
 

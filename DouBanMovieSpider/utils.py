@@ -180,16 +180,5 @@ user_agent_list = ["Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, l
                     "Mozilla/5.0 (iPhone; CPU iPhone OS 8_4 like Mac OS X) AppleWebKit/600.1.4 (KHTML, like Gecko) GSA/7.0.55539 Mobile/12H143 Safari/600.1.4"
                    ]
 
-proxy_ip_list = ['175.154.213.82','182.96.242.80']
-
-def get_random_proxyUrl():
-    # proxyaddr = "175.42.18.149"    #代理IP地址
-    proxyaddr = random.choice(proxy_ip_list)
-    proxyport = 57114               #代理IP端口
-    proxyusernm = "Hutttt"        #代理帐号
-    proxypasswd = "Qepwq302585210"        #代理密码
-    proxyurl="http://"+proxyusernm+":"+proxypasswd+"@"+proxyaddr+":"+"%d"%proxyport
-    return proxyurl
-
 def get_random_agent():
     return random.choice(user_agent_list)

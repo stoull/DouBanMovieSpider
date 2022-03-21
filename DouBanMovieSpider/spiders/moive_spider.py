@@ -4,7 +4,7 @@ import time
 import json
 from datetime import datetime
 
-from DouBanMovieSpider.items import Moive, Celebrity
+from DouBanMovieSpider.items import Moive, Celebrity, ImageItem
 from DouBanMovieSpider.database import DBManager
 
 
@@ -14,7 +14,7 @@ class QuotesSpider(scrapy.Spider):
 
     def start_requests(self):
         urls = [
-            'https://movie.douban.com/subject/1291568/'
+            'https://movie.douban.com/subject/1303444/'
         ]
         for url in urls:
             m_id = int(url.split('/')[4])
@@ -134,6 +134,9 @@ class QuotesSpider(scrapy.Spider):
         movie['doubanUrl'] = doubanUrl
         movie['posterUrl'] = posterUrl
         movie['iconUrl'] = iconUrl
+
+        yield ImageItem(image_urls=[posterUrl])
+
         # https://docs.scrapy.org/en/latest/topics/request-response.html
         print(f'movie 对象: {movie}')
         yield movie
@@ -228,5 +231,6 @@ class QuotesSpider(scrapy.Spider):
             elif li_name == "imdb编号":
                 director['imdb'] = li.css('a::text').get()
         director['photoUrl'] = photoUrl
+        yield ImageItem(image_urls=[photoUrl])
         director['intro'] = intro
         yield director

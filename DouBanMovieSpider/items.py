@@ -55,3 +55,7 @@ class Celebrity(scrapy.Item):
     imdb = scrapy.Field()
     intro = scrapy.Field()
     photoUrl = scrapy.Field()
+
+class ImageItem(scrapy.Item):
+    image_urls = scrapy.Field()
+    images = scrapy.Field()

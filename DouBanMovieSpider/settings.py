@@ -14,6 +14,8 @@ BOT_NAME = 'DouBanMovieSpider'
 SPIDER_MODULES = ['DouBanMovieSpider.spiders']
 NEWSPIDER_MODULE = 'DouBanMovieSpider.spiders'
 
+# for the storage of image pipeline
+IMAGES_STORE = 'images'
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 #USER_AGENT = 'DouBanMovieSpider (+http://www.yourdomain.com)'
@@ -68,6 +70,7 @@ DOWNLOADER_MIDDLEWARES = {
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
    'DouBanMovieSpider.pipelines.DoubanmoviespiderPipeline': 300,
+   'DouBanMovieSpider.pipelines.DoubanImagesPipeline': 300
 }
 
 # Enable and configure the AutoThrottle extension (disabled by default)

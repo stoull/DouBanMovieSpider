@@ -14,7 +14,14 @@ class QuotesSpider(scrapy.Spider):
 
     def start_requests(self):
         urls = [
-            'https://www.google.com.hk/'
+            'https://movie.douban.com/subject/1292001/',
+            'https://movie.douban.com/subject/1296736/',
+            'https://movie.douban.com/subject/25978207/',
+            'https://movie.douban.com/subject/1292719/',
+            'https://movie.douban.com/subject/1291828/',
+            'https://movie.douban.com/subject/3011091/',
+            'https://movie.douban.com/subject/1298944/',
+            'https://movie.douban.com/subject/1303525/'
         ]
         for url in urls:
             m_id = int(url.split('/')[4])
@@ -135,7 +142,9 @@ class QuotesSpider(scrapy.Spider):
         movie['posterUrl'] = posterUrl
         movie['iconUrl'] = iconUrl
 
-        yield ImageItem(image_urls=[posterUrl])
+        imageItem = ImageItem()
+        imageItem['image_urls'] = [posterUrl]
+        yield imageItem
 
         # https://docs.scrapy.org/en/latest/topics/request-response.html
         print(f'movie 对象: {movie}')
@@ -231,6 +240,8 @@ class QuotesSpider(scrapy.Spider):
             elif li_name == "imdb编号":
                 director['imdb'] = li.css('a::text').get()
         director['photoUrl'] = photoUrl
-        yield ImageItem(image_urls=[photoUrl])
+        imageItem = ImageItem()
+        imageItem['image_urls'] = [photoUrl]
+        yield imageItem
         director['intro'] = intro
         yield director

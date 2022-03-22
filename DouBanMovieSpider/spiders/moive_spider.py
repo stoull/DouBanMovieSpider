@@ -14,14 +14,11 @@ class QuotesSpider(scrapy.Spider):
 
     def start_requests(self):
         urls = [
-            'https://movie.douban.com/subject/1292001/',
-            'https://movie.douban.com/subject/1296736/',
-            'https://movie.douban.com/subject/25978207/',
-            'https://movie.douban.com/subject/1292719/',
-            'https://movie.douban.com/subject/1291828/',
-            'https://movie.douban.com/subject/3011091/',
-            'https://movie.douban.com/subject/1298944/',
-            'https://movie.douban.com/subject/1303525/'
+            'https://movie.douban.com/subject/1294639/',
+            'https://movie.douban.com/subject/1450031/',
+            'https://movie.douban.com/subject/35293160/',
+            'https://movie.douban.com/subject/30271841/',
+            'https://movie.douban.com/subject/30170546/'
         ]
         for url in urls:
             m_id = int(url.split('/')[4])
@@ -57,6 +54,11 @@ class QuotesSpider(scrapy.Spider):
                                           meta={'movie_id': movie_id, 'type': 'Director'}, dont_filter=True)
                 else:
                     print("Director Does Exist")
+            else:
+                if director_names:
+                    director_names = director_names + ", " + dire_name
+                else:
+                    director_names = dire_name
 
         # 编剧
         scen_names = ""
@@ -75,6 +77,12 @@ class QuotesSpider(scrapy.Spider):
                                           meta={'movie_id': movie_id, 'type': 'Scenarist'}, dont_filter=True)
                 else:
                     print("Scenarist Does Exist")
+            else:
+                if scen_names:
+                    scen_names = scen_names + ", " + scen_name
+                else:
+                    scen_names = scen_name
+
 
         # # 演员
         actor_names = ""
@@ -95,6 +103,11 @@ class QuotesSpider(scrapy.Spider):
                                           meta={'movie_id': movie_id, 'type': 'Actor'})
                     else:
                         print("Actor Does Exist")
+                else:
+                    if actor_names:
+                        actor_names = actor_names + ", " + actor_name
+                    else:
+                        actor_names = actor_name
             else:
                 break
             maximum_count += 1
@@ -107,12 +120,27 @@ class QuotesSpider(scrapy.Spider):
         release_dates = response.xpath('//span[@property="v:initialReleaseDate"]/text()').getall()
         info_br_sibling_html = response.xpath('//div[@id="info"]/br/following-sibling::text()').getall()
 
+        all_title_string = response.xpath('//span[@class="pl"]/text()').getall()
+        all_title_string = "".join(all_title_string)
+        all_title_string = re.sub(r"[\n\t()| ·]*", "", all_title_string)
+
         area_index = 4+len(types)
+        if "主演" not in all_title_string:
+            area_index = area_index-1
+        if "编剧" not in all_title_string:
+            area_index = area_index-1
+        
         area = info_br_sibling_html[area_index]
         languages = info_br_sibling_html[area_index+2]  # 8
-        otherNames = info_br_sibling_html[area_index+9]  # 15
-        score = response.xpath('//strong[@class="ll rating_num"]/text()').get()
+
+        if "又名" in all_title_string:
+            if "IMDb" in all_title_string:
+                otherNames = info_br_sibling_html[-4]
+            else:
+                otherNames = info_br_sibling_html[-2]
+        
         lenght = response.xpath('//span[@property="v:runtime"]').xpath('@content').get()
+        score = response.xpath('//strong[@class="ll rating_num"]/text()').get()
         ratingPeople = response.xpath('//span[@property="v:votes"]/text()').get()
         score_float = float(score)
         ratingPeople_int = int(ratingPeople)
@@ -120,12 +148,14 @@ class QuotesSpider(scrapy.Spider):
         synopsisStr = "".join(synopsis)
         synopsisStr = synopsisStr.strip()  # 移除说明中的多有的空格及换行
         synopsisStr = re.sub(r"[\n\t]*", "", synopsisStr)   # 移除说明中的多有的空格及换行
-        imdb = info_br_sibling_html[-2]  # 17
+        if "IMDb" in all_title_string:
+            imdb = info_br_sibling_html[-2]  # 17
         if otherNames == imdb:
             otherNames = ""
         doubanUrl = response.url
         iconUrl = response.xpath('//img[@rel="v:image"]').xpath('@src').get()
         posterUrl = "https://img9.doubanio.com/view/photo/l/public/" + iconUrl.split('/')[-1]
+
 
         movie = Moive(m_id=movie_id, name=movie_name, year=year_int, directors=director_names, scenarists=scen_names, actors=actor_names)
         movie['style'] = " / ".join(types)

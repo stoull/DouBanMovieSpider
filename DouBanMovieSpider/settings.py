@@ -15,14 +15,15 @@ SPIDER_MODULES = ['DouBanMovieSpider.spiders']
 NEWSPIDER_MODULE = 'DouBanMovieSpider.spiders'
 
 # for the storage of image pipeline
-IMAGES_STORE = 'images'
+IMAGES_STORE = 'Images'
+IMAGES_EXPIRES = 9999
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 #USER_AGENT = 'DouBanMovieSpider (+http://www.yourdomain.com)'
 USER_AGENT = get_random_agent()
 
 # Obey robots.txt rules
-ROBOTSTXT_OBEY = True
+ROBOTSTXT_OBEY = False
 
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
 #CONCURRENT_REQUESTS = 32

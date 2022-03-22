@@ -56,6 +56,9 @@ class Celebrity(scrapy.Item):
     intro = scrapy.Field()
     photoUrl = scrapy.Field()
 
+
 class ImageItem(scrapy.Item):
+    image_name = scrapy.Field()
     image_urls = scrapy.Field()
     images = scrapy.Field()
+    image_paths = scrapy.Field()

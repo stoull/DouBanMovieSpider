@@ -10,8 +10,6 @@ import scrapy
 from itemadapter import ItemAdapter
 from scrapy.pipelines.images import ImagesPipeline
 from scrapy.exceptions import DropItem
-import hashlib
-from os.path import splitext
 
 from DouBanMovieSpider.items import Moive, Celebrity
 from DouBanMovieSpider.database import DBManager
@@ -43,6 +41,7 @@ class DoubanmoviespiderPipeline:
         elif isinstance(item, Celebrity):
             self.db.insertCelerbrityItem(item)
         return item
+
 
 class DoubanImagesPipeline(ImagesPipeline):
 

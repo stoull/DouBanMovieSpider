@@ -14,7 +14,7 @@ class QuotesSpider(scrapy.Spider):
 
     def start_requests(self):
         urls = [
-            'https://movie.douban.com/subject/1303444/'
+            'https://www.google.com.hk/'
         ]
         for url in urls:
             m_id = int(url.split('/')[4])

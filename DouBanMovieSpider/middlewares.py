@@ -77,7 +77,7 @@ class DoubanmoviespiderDownloaderMiddleware:
         # - or return a Request object
         # - or raise IgnoreRequest: process_exception() methods of
         #   installed downloader middleware will be called
-        request.meta['proxy'] = 'http://ec2-44-202-117-227.compute-1.amazonaws.com:8080'
+        request.meta['proxy'] = 'http://xxxxx.com'
 
         return None
 

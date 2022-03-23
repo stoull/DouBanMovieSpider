@@ -134,6 +134,8 @@ class DBManager(object):
         cur = con.cursor()
 
         obj_type = dItem['type']
+        movie_id = dItem['movie_id']
+        celebrity_id = int(dItem['d_id'])
 
         # save the infomation of area
         briPlaStr = dItem['birthplace']
@@ -143,7 +145,6 @@ class DBManager(object):
                 areaStr = briPlaStr.split('，')
             else:
                 areaStr = briPlaStr.split(',')
-            celebrity_id = int(dItem['d_id'])
             for str in areaStr:
                 cur.execute('''INSERT OR IGNORE INTO area(name) values(?)''', (str,))
                 con.commit()
@@ -156,9 +157,19 @@ class DBManager(object):
                     elif obj_type == 'Actor':
                         cur.execute('''INSERT OR IGNORE INTO actor_area(actor_id,area_id) values(?,?)''',
                                     (celebrity_id, area_id))
-                    elif obj_type == 'actor_id':
+                    elif obj_type == 'Scenarist':
                         cur.execute('''INSERT OR IGNORE INTO scenarist_area(scenarist_id,area_id) values(?,?)''',
                                     (celebrity_id, area_id))
+
+        if obj_type == 'Director':
+            cur.execute('''INSERT OR IGNORE INTO movie_director(movie_id,director_id) values(?,?)''',
+                        (movie_id, celebrity_id))
+        elif obj_type == 'Actor':
+            cur.execute('''INSERT OR IGNORE INTO movie_actor(movie_id,actor_id) values(?,?)''',
+                        (movie_id, celebrity_id))
+        elif obj_type == 'Scenarist':
+            cur.execute('''INSERT OR IGNORE INTO movie_scenarist(movie_id,scenarist_id) values(?,?)''',
+                        (movie_id, celebrity_id))
 
         if obj_type == 'Director':
             cur.execute('''INSERT OR IGNORE INTO director(id, name, gender, zodiac, livingTime, birthday, 

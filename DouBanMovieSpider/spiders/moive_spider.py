@@ -14,13 +14,22 @@ class QuotesSpider(scrapy.Spider):
 
     def start_requests(self):
         urls = [
-            'https://movie.douban.com/subject/1294639/',
-            'https://movie.douban.com/subject/1450031/',
-            'https://movie.douban.com/subject/35293160/',
-            'https://movie.douban.com/subject/30271841/',
-            'https://movie.douban.com/subject/30170546/'
+            'https://movie.douban.com/subject/30458949/',
+            'https://movie.douban.com/subject/34658290/',
+            'https://movie.douban.com/subject/1293172/',
+            'https://movie.douban.com/subject/30310218/',
+            'https://movie.douban.com/subject/1291548/',
+            'https://movie.douban.com/subject/30466931/',
+            'https://movie.douban.com/subject/1292722/',
+            'https://movie.douban.com/subject/1469441/',
+            'https://movie.douban.com/subject/1292052/',
+            'https://movie.douban.com/subject/1828115/',
+            'https://movie.douban.com/subject/26710657/',
+            'https://movie.douban.com/subject/6786002/',
+            'https://movie.douban.com/subject/1295124/',
         ]
         for url in urls:
+            # yield  scrapy.Request(url=url, callback=self.parseIpLocation)
             m_id = int(url.split('/')[4])
             if not self.db.isMovieExist(m_id):
                 yield scrapy.Request(url=url, callback=self.parseMovie)
@@ -34,6 +43,10 @@ class QuotesSpider(scrapy.Spider):
     def parseIpLocation(self, response):
         jsonresponse = json.loads(response.text)
         print(jsonresponse)
+
+        # imageItem = ImageItem()
+        # imageItem['image_urls'] = ['https://img9.doubanio.com/view/photo/l/public/p1374588202.jpg',]
+        # yield imageItem
 
     def parseMovie(self, response):
         movie_id = response.url.split('/')[4]

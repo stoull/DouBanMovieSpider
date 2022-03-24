@@ -14,19 +14,7 @@ class QuotesSpider(scrapy.Spider):
 
     def start_requests(self):
         urls = [
-            'https://movie.douban.com/subject/30458949/',
-            'https://movie.douban.com/subject/34658290/',
-            'https://movie.douban.com/subject/1293172/',
-            'https://movie.douban.com/subject/30310218/',
-            'https://movie.douban.com/subject/1291548/',
-            'https://movie.douban.com/subject/30466931/',
-            'https://movie.douban.com/subject/1292722/',
-            'https://movie.douban.com/subject/1469441/',
-            'https://movie.douban.com/subject/1292052/',
-            'https://movie.douban.com/subject/1828115/',
-            'https://movie.douban.com/subject/26710657/',
-            'https://movie.douban.com/subject/6786002/',
-            'https://movie.douban.com/subject/1295124/',
+            'https://movie.douban.com/subject/34907418/',
         ]
         for url in urls:
             # yield  scrapy.Request(url=url, callback=self.parseIpLocation)
@@ -146,6 +134,7 @@ class QuotesSpider(scrapy.Spider):
         area = info_br_sibling_html[area_index]
         languages = info_br_sibling_html[area_index+2]  # 8
 
+        otherNames = " "
         if "又名" in all_title_string:
             if "IMDb" in all_title_string:
                 otherNames = info_br_sibling_html[-4]
@@ -163,8 +152,9 @@ class QuotesSpider(scrapy.Spider):
         synopsisStr = re.sub(r"[\n\t]*", "", synopsisStr)   # 移除说明中的多有的空格及换行
         if "IMDb" in all_title_string:
             imdb = info_br_sibling_html[-2]  # 17
-        if otherNames == imdb:
-            otherNames = ""
+            if otherNames == imdb:
+                otherNames = ""
+
         doubanUrl = response.url
         iconUrl = response.xpath('//img[@rel="v:image"]').xpath('@src').get()
         posterUrl = "https://img9.doubanio.com/view/photo/l/public/" + iconUrl.split('/')[-1]

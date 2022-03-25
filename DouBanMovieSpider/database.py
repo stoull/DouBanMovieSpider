@@ -170,7 +170,6 @@ class DBManager(object):
         elif obj_type == 'Scenarist':
             cur.execute('''INSERT OR IGNORE INTO movie_scenarist(movie_id,scenarist_id) values(?,?)''',
                         (movie_id, celebrity_id))
-
         if obj_type == 'Director':
             cur.execute('''INSERT OR IGNORE INTO director(id, name, gender, zodiac, livingTime, birthday, 
             leaveday, birthplace, occupation, names_cn, names_en, family, imdb, intro, photoUrl)

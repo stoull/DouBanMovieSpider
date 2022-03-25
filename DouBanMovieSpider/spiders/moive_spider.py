@@ -14,13 +14,15 @@ class QuotesSpider(scrapy.Spider):
 
     def start_requests(self):
         urls = [
-            'https://movie.douban.com/subject/34907418/',
+            'https://movie.douban.com/celebrity/1002724/',
+            'https://movie.douban.com/celebrity/1041189/',
         ]
+
         for url in urls:
             # yield  scrapy.Request(url=url, callback=self.parseIpLocation)
             m_id = int(url.split('/')[4])
             if not self.db.isMovieExist(m_id):
-                yield scrapy.Request(url=url, callback=self.parseMovie)
+                yield scrapy.Request(url=url, callback=self.parseCelebrity)
             else:
                 print("Movie Does Exist")
 
@@ -144,12 +146,16 @@ class QuotesSpider(scrapy.Spider):
         lenght = response.xpath('//span[@property="v:runtime"]').xpath('@content').get()
         score = response.xpath('//strong[@class="ll rating_num"]/text()').get()
         ratingPeople = response.xpath('//span[@property="v:votes"]/text()').get()
-        score_float = float(score)
+        if score is None:
+            score = 0
+        else:
+            score_float = float(score)
         ratingPeople_int = int(ratingPeople)
         synopsis = response.xpath('//span[@property="v:summary"]/text()').getall()
         synopsisStr = "".join(synopsis)
-        synopsisStr = synopsisStr.strip()  # 移除说明中的多有的空格及换行
-        synopsisStr = re.sub(r"[\n\t]*", "", synopsisStr)   # 移除说明中的多有的空格及换行
+        if synopsisStr is not None:
+            synopsisStr = synopsisStr.strip()  # 移除说明中的多有的空格及换行
+            synopsisStr = re.sub(r"[\n\t]*", "", synopsisStr)   # 移除说明中的多有的空格及换行
         if "IMDb" in all_title_string:
             imdb = info_br_sibling_html[-2]  # 17
             if otherNames == imdb:
@@ -204,7 +210,7 @@ class QuotesSpider(scrapy.Spider):
         intro = re.sub(r"[\n\t]*", "", intro)  # 移除说明中的多有的空格及换行
 
         movie_id = response.meta.get('movie_id')
-        res_Type = response.meta.get('type')
+        res_Type = 'Actor' #  response.meta.get('type')
 
         director = Celebrity(type=res_Type, movie_id=movie_id, d_id=director_id, name=director_name)
         # if res_Type == 'Director':
@@ -255,8 +261,16 @@ class QuotesSpider(scrapy.Spider):
                 print(f"生卒日期5: {dateString1} {dateString2}")
                 datetime_object1 = datetime.strptime(dateString1, '%Y-%m-%d')
                 datetime_object2 = datetime.strptime(dateString2, '%Y-%m-%d')
-                birthday = time.mktime(datetime_object1.timetuple())
-                leaveday = time.mktime(datetime_object2.timetuple())
+                min_day = datetime(1900, 1, 1)
+                if datetime_object1 < min_day:
+                    epoch = datetime(1970, 1, 1)
+                    birthday_diff = datetime_object1-epoch
+                    leaveday_diff = datetime_object2-epoch
+                    birthday = birthday_diff.total_seconds()
+                    leaveday = leaveday_diff.total_seconds()
+                else:
+                    birthday = time.mktime(datetime_object1.timetuple())
+                    leaveday = time.mktime(datetime_object2.timetuple())
                 director['birthday'] = birthday
                 director['leaveday'] = leaveday
 

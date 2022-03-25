@@ -14,15 +14,23 @@ class QuotesSpider(scrapy.Spider):
 
     def start_requests(self):
         urls = [
-            'https://movie.douban.com/celebrity/1002724/',
-            'https://movie.douban.com/celebrity/1041189/',
+            'https://movie.douban.com/subject/1300842/'
+            'https://movie.douban.com/subject/1291568/'
+            'https://movie.douban.com/subject/1304405/'
+            'https://movie.douban.com/subject/1401843/'
+            'https://movie.douban.com/subject/1299360/'
+            'https://movie.douban.com/subject/1298063/'
+            'https://movie.douban.com/subject/1297841/'
+            'https://movie.douban.com/subject/1306069/'
+            'https://movie.douban.com/subject/1294433/'
+            'https://movie.douban.com/subject/1401842/'
         ]
 
         for url in urls:
             # yield  scrapy.Request(url=url, callback=self.parseIpLocation)
             m_id = int(url.split('/')[4])
             if not self.db.isMovieExist(m_id):
-                yield scrapy.Request(url=url, callback=self.parseCelebrity)
+                yield scrapy.Request(url=url, callback=self.parseMovie)
             else:
                 print("Movie Does Exist")
 

@@ -4,33 +4,126 @@ import time
 import json
 from datetime import datetime
 
+# for log
+import logging
+from scrapy.utils.log import configure_logging
+
 from DouBanMovieSpider.items import Moive, Celebrity, ImageItem
 from DouBanMovieSpider.database import DBManager
 
 
 class QuotesSpider(scrapy.Spider):
+    #  Logging https://docs.scrapy.org/en/latest/topics/logging.html
+    configure_logging(install_root_handler=False)
+    logging.basicConfig(
+        filename='scrapy_log.txt',
+        format='%(levelname)s: %(message)s',
+        level=logging.ERROR
+    )
+
     name = "movie"
     db = DBManager()
 
     def start_requests(self):
         urls = [
-            'https://movie.douban.com/subject/1300842/'
-            'https://movie.douban.com/subject/1291568/'
-            'https://movie.douban.com/subject/1304405/'
-            'https://movie.douban.com/subject/1401843/'
-            'https://movie.douban.com/subject/1299360/'
-            'https://movie.douban.com/subject/1298063/'
-            'https://movie.douban.com/subject/1297841/'
-            'https://movie.douban.com/subject/1306069/'
-            'https://movie.douban.com/subject/1294433/'
-            'https://movie.douban.com/subject/1401842/'
+            'https://movie.douban.com/subject/1291543/',
+            'https://movie.douban.com/subject/27079318/',
+            'https://movie.douban.com/subject/4719384/',
+            'https://movie.douban.com/subject/27172891/',
+            'https://movie.douban.com/subject/26752088/',
+            'https://movie.douban.com/subject/27110296/',
+            'https://movie.douban.com/subject/1296436/',
+            'https://movie.douban.com/subject/1303173/',
+            'https://movie.douban.com/subject/3036997/',
+            'https://movie.douban.com/subject/1299661/',
+            'https://movie.douban.com/subject/1461403/',
+            'https://movie.douban.com/subject/4876722/',
+            'https://movie.douban.com/subject/3734112/',
+            'https://movie.douban.com/subject/25921812/',
+            'https://movie.douban.com/subject/1306490/',
+            'https://movie.douban.com/subject/1301136/',
+            'https://movie.douban.com/subject/1292330/',
+            'https://movie.douban.com/subject/1294194/',
+            'https://movie.douban.com/subject/3629230/',
+            'https://movie.douban.com/subject/2136171/',
+            'https://movie.douban.com/subject/5343752/',
+            'https://movie.douban.com/subject/1761854/',
+            'https://movie.douban.com/subject/3724118/',
+            'https://movie.douban.com/subject/1292365/',
+            'https://movie.douban.com/subject/1306505/',
+            'https://movie.douban.com/subject/1303037/',
+            'https://movie.douban.com/subject/1292434/',
+            'https://movie.douban.com/subject/1292329/',
+            'https://movie.douban.com/subject/1291557/',
+            'https://movie.douban.com/subject/1291999/',
+            'https://movie.douban.com/subject/1309087/',
+            'https://movie.douban.com/subject/26872545/',
+            'https://movie.douban.com/subject/1301897/',
+            'https://movie.douban.com/subject/1296177/',
+            'https://movie.douban.com/subject/1303465/',
+            'https://movie.douban.com/subject/1303471/',
+            'https://movie.douban.com/subject/1307745/',
+            'https://movie.douban.com/subject/1303444/',
+            'https://movie.douban.com/subject/1303521/',
+            'https://movie.douban.com/subject/24525283/',
+            'https://movie.douban.com/subject/1303525/',
+            'https://movie.douban.com/subject/1291556/',
+            'https://movie.douban.com/subject/1298248/',
+            'https://movie.douban.com/subject/1295656/',
+            'https://movie.douban.com/subject/1294531/',
+            'https://movie.douban.com/subject/1299248/',
+            'https://movie.douban.com/subject/6518638/',
+            'https://movie.douban.com/subject/1408101/',
+            'https://movie.douban.com/subject/26766869/',
+            'https://movie.douban.com/subject/1296147/',
+            'https://movie.douban.com/subject/1297268/',
+            'https://movie.douban.com/subject/1422088/',
+            'https://movie.douban.com/subject/3285632/',
+            'https://movie.douban.com/subject/1416898/',
+            'https://movie.douban.com/subject/1292218/',
+            'https://movie.douban.com/subject/24750126/',
+            'https://movie.douban.com/subject/1782378/',
+            'https://movie.douban.com/subject/1306019/',
+            'https://movie.douban.com/subject/1306559/',
+            'https://movie.douban.com/subject/1295720/',
+            'https://movie.douban.com/subject/4221335/',
+            'https://movie.douban.com/subject/30391726/',
+            'https://movie.douban.com/subject/10535568/',
+            'https://movie.douban.com/subject/30310218/',
+            'https://movie.douban.com/subject/1769507/',
+            'https://movie.douban.com/subject/30257175/',
+            'https://movie.douban.com/subject/2009392/',
+            'https://movie.douban.com/subject/2935729/',
+            'https://movie.douban.com/subject/1305092/',
+            'https://movie.douban.com/subject/25958717/',
+            'https://movie.douban.com/subject/1300956/',
+            'https://movie.douban.com/subject/2078398/',
+            'https://movie.douban.com/subject/26614893/',
+            'https://movie.douban.com/subject/1291831/',
+            'https://movie.douban.com/subject/34447553/',
+            'https://movie.douban.com/subject/35293160/',
+            'https://movie.douban.com/subject/1291877/',
+            'https://movie.douban.com/subject/1293388/',
+            'https://movie.douban.com/subject/1302675/',
+            'https://movie.douban.com/subject/1293632/',
+            'https://movie.douban.com/subject/1294140/',
+            'https://movie.douban.com/subject/1296976/',
+            'https://movie.douban.com/subject/1294782/',
+            'https://movie.douban.com/subject/1302413/',
+            'https://movie.douban.com/subject/2342769/',
+            'https://movie.douban.com/subject/1303536/',
+            'https://movie.douban.com/subject/1401619/',
+            'https://movie.douban.com/subject/1292048/',
+            'https://movie.douban.com/subject/1292047/',
+            'https://movie.douban.com/subject/1292049/',
+            'https://movie.douban.com/subject/1293350/',
         ]
 
         for url in urls:
             # yield  scrapy.Request(url=url, callback=self.parseIpLocation)
             m_id = int(url.split('/')[4])
             if not self.db.isMovieExist(m_id):
-                yield scrapy.Request(url=url, callback=self.parseMovie)
+                yield scrapy.Request(url=url, callback=self.parseCelebrity)
             else:
                 print("Movie Does Exist")
 
@@ -190,7 +283,7 @@ class QuotesSpider(scrapy.Spider):
         movie['iconUrl'] = iconUrl
 
         imageItem = ImageItem()
-        imageItem['image_urls'] = [posterUrl]
+        imageItem['image_urls'] = [posterUrl, ]
         yield imageItem
 
         # https://docs.scrapy.org/en/latest/topics/request-response.html
@@ -218,7 +311,9 @@ class QuotesSpider(scrapy.Spider):
         intro = re.sub(r"[\n\t]*", "", intro)  # 移除说明中的多有的空格及换行
 
         movie_id = response.meta.get('movie_id')
-        res_Type = 'Actor' #  response.meta.get('type')
+        # movie_id = 3629230
+        res_Type = response.meta.get('type')
+        # res_Type = 'Actor' #  response.meta.get('type')
 
         director = Celebrity(type=res_Type, movie_id=movie_id, d_id=director_id, name=director_name)
         # if res_Type == 'Director':
@@ -248,27 +343,29 @@ class QuotesSpider(scrapy.Spider):
                 if len(dateString) == 4:
                     # 1925年 形式
                     datetime_obj = datetime.strptime(dateString, '%Y')
+                elif len(dateString) == 7:
+                    # 1963年04月 形式
+                    datetime_obj = datetime.strptime(dateString, '%Y-%m')
                 else:
                     datetime_obj = datetime.strptime(dateString, '%Y-%m-%d')
                 director['birthday'] = time.mktime(datetime_obj.timetuple())
             elif li_name == "生卒日期":
                 director['livingTime'] = li_value
-                print(f"生卒日期: {li_value}")
                 li_value = re.sub(r"[ +]", "", li_value)
-                print(f"生卒日期2: {li_value}")
                 # +1903年12月12日 至 +1963年12月12日 及 1956年09月12日 至 2003年04月01日 形式 1890年09月30日 至 1980年05月08日
                 dateStrArray = li_value.split('至')
-                print(f"生卒日期3: {dateStrArray}")
                 dateRawString1 = dateStrArray[0]
                 dateRawString2 = dateStrArray[1]
                 dateString1 = re.sub(r"[^0-9]", "-", dateRawString1)
                 dateString2 = re.sub(r"[^0-9]", "-", dateRawString2)
-                print(f"生卒日期4: {dateString1} {dateString2}")
                 dateString1 = dateString1[0:-1]
                 dateString2 = dateString2[0:-1]
-                print(f"生卒日期5: {dateString1} {dateString2}")
-                datetime_object1 = datetime.strptime(dateString1, '%Y-%m-%d')
-                datetime_object2 = datetime.strptime(dateString2, '%Y-%m-%d')
+                if len(dateString1) == 7:
+                    datetime_object1 = datetime.strptime(dateString1, '%Y-%m')
+                    datetime_object2 = datetime.strptime(dateString2, '%Y-%m')
+                else:
+                    datetime_object1 = datetime.strptime(dateString1, '%Y-%m-%d')
+                    datetime_object2 = datetime.strptime(dateString2, '%Y-%m-%d')
                 min_day = datetime(1900, 1, 1)
                 if datetime_object1 < min_day:
                     epoch = datetime(1970, 1, 1)
@@ -296,7 +393,7 @@ class QuotesSpider(scrapy.Spider):
                 director['imdb'] = li.css('a::text').get()
         director['photoUrl'] = photoUrl
         imageItem = ImageItem()
-        imageItem['image_urls'] = [photoUrl]
+        imageItem['image_urls'] = [photoUrl, ]
         yield imageItem
         director['intro'] = intro
         yield director

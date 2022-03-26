@@ -51,8 +51,10 @@ class DoubanImagesPipeline(ImagesPipeline):
         return image_name
 
     def get_media_requests(self, item, info):
-        for image_url in item['image_urls']:
-            yield scrapy.Request(image_url)
+        if 'image_urls' in item:
+            for image_url in item['image_urls']:
+                if image_url is not None:
+                    yield scrapy.Request(image_url)
 
     def item_completed(self, results, item, info):
         image_paths = [x['path'] for ok, x in results if ok]

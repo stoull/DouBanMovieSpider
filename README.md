@@ -69,7 +69,7 @@ response.xpath('//strong[@class="ll rating_num"]/text()').get()
 简介(需处理换行符)：
 response.xpath('//span[@property="v:summary"]/text()').get()
 
-`scrapy shell -s USER_AGENT='Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like Gecko' 'https://movie.douban.com/subject/1292052/'`
+`scrapy shell -s USER_AGENT='Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like Gecko' 'https://movie.douban.com/subject/26766869/'`
 
 `scrapy shell -s USER_AGENT='Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like Gecko' 'https://movie.douban.com/subject/34888057/'`
 

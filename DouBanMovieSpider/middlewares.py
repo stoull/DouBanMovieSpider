@@ -77,7 +77,10 @@ class DoubanmoviespiderDownloaderMiddleware:
         # - or return a Request object
         # - or raise IgnoreRequest: process_exception() methods of
         #   installed downloader middleware will be called
-        request.meta['proxy'] = 'http://xxxxx.com'
+        if '.jpg' in request.url:
+            pass
+        else:
+            request.meta['proxy'] = 'http://xxxx.com'
         return None
 
     def process_response(self, request, response, spider):

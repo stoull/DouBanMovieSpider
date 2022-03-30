@@ -69,9 +69,29 @@ response.xpath('//strong[@class="ll rating_num"]/text()').get()
 简介(需处理换行符)：
 response.xpath('//span[@property="v:summary"]/text()').get()
 
+// 喜欢这部电影的人也喜欢
+id:
+response.xpath('//div[@id="recommendations"]/div/dl')[0].xpath('dt/a/@href').attrib['href']
+
+海报：
+response.xpath('//div[@id="recommendations"]/div/dl')[0].xpath('dt/a/img').attrib['src']
+
+名字：
+response.xpath('//div[@id="recommendations"]/div/dl')[0].xpath('dt/a/img').attrib['alt']
+
+短评：
+response.xpath('//div[@id="hot-comments"]/div')[0].xpath('div/p/span/text()').get()
+
+影评：
+response.xpath('//div[@class="short-content"]/text()').getall()
+
+
 `scrapy shell -s USER_AGENT='Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like Gecko' 'https://movie.douban.com/subject/26766869/'`
 
-`scrapy shell -s USER_AGENT='Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like Gecko' 'https://movie.douban.com/subject/34888057/'`
+`scrapy shell -s USER_AGENT='Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like Gecko' 'https://movie.douban.com/subject/35774719/'`
+
+response.xpath('//div[@class="comment-item"]')[0].xpath('div/div')
+
 
 ## 人物页
 
@@ -122,6 +142,10 @@ response.xpath('//div[@id="content"]/h1/text()').get()
 | createDate | DATETIME | 电影数据创建 |
 | lastWatchDate | DATETIME | 最近观看时间 |
 | lastWatchUser | VARCHAR(40) | 最近观看人 |
+
+| downloaded | BLOB | 是否已下载 |
+| downloadlink | VARCHAR(40) | 最近观看人 |
+
 
 导演,编剧, 演员(director, scenarist, actor)：
 

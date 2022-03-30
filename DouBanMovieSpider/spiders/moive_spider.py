@@ -26,7 +26,7 @@ class QuotesSpider(scrapy.Spider):
 
     def start_requests(self):
         urls = [
-            'file:/Users/kevin/Desktop/30196877',
+            'https://movie.douban.com/celebrity/1337634/',
         ]
 
         for url in urls:
@@ -97,7 +97,6 @@ class QuotesSpider(scrapy.Spider):
                 else:
                     scen_names = scen_name
 
-
         # # 演员
         actor_names = ""
         actor_info_html = response.xpath('//div[@id="info"]/span')[2].css('a')
@@ -114,7 +113,7 @@ class QuotesSpider(scrapy.Spider):
                         actor_names = actor_name
                     if not self.db.isActorExist(actor_id):
                         yield response.follow(actor_path, callback=self.parseCelebrity,
-                                          meta={'movie_id': movie_id, 'type': 'Actor'})
+                                              meta={'movie_id': movie_id, 'type': 'Actor'})
                     else:
                         print(f"Actor Does Exist: {actor_name}: {actor_id}")
                 else:
@@ -138,14 +137,14 @@ class QuotesSpider(scrapy.Spider):
         all_title_string = "".join(all_title_string)
         all_title_string = re.sub(r"[\n\t()| ·]*", "", all_title_string)
 
-        area_index = 4+len(types)
+        area_index = 4 + len(types)
         if "主演" not in all_title_string:
-            area_index = area_index-1
+            area_index = area_index - 1
         if "编剧" not in all_title_string:
-            area_index = area_index-1
-        
+            area_index = area_index - 1
+
         area = info_br_sibling_html[area_index]
-        languages = info_br_sibling_html[area_index+2]  # 8
+        languages = info_br_sibling_html[area_index + 2]  # 8
 
         otherNames = " "
         if "又名" in all_title_string:
@@ -158,14 +157,14 @@ class QuotesSpider(scrapy.Spider):
         lenght = response.xpath('//span[@property="v:runtime"]').xpath('@content').get()
         if lenght is None:
             if "片长" in all_title_string:
-                lenght=info_br_sibling_html[-6]
+                lenght = info_br_sibling_html[-6]
                 print(f"xxxxxxx : {lenght}")
                 if lenght is not None:
                     lenght = re.findall(r'\d+', lenght)[0]
                 else:
                     lenght = '0'
             else:
-                lenght='0'
+                lenght = '0'
 
         score = response.xpath('//strong[@class="ll rating_num"]/text()').get()
         ratingPeople = response.xpath('//span[@property="v:votes"]/text()').get()
@@ -181,7 +180,7 @@ class QuotesSpider(scrapy.Spider):
         synopsisStr = "".join(synopsis)
         if synopsisStr is not None:
             synopsisStr = synopsisStr.strip()  # 移除说明中的多有的空格及换行
-            synopsisStr = re.sub(r"[\n\t]*", "", synopsisStr)   # 移除说明中的多有的空格及换行
+            synopsisStr = re.sub(r"[\n\t]*", "", synopsisStr)  # 移除说明中的多有的空格及换行
         if "IMDb" in all_title_string:
             imdb = info_br_sibling_html[-2]  # 17
             if otherNames == imdb:
@@ -193,7 +192,8 @@ class QuotesSpider(scrapy.Spider):
         iconUrl = response.xpath('//img[@rel="v:image"]').xpath('@src').get()
         posterUrl = "https://img9.doubanio.com/view/photo/l/public/" + iconUrl.split('/')[-1]
 
-        movie = Moive(m_id=movie_id, name=movie_name, year=year_int, directors=director_names, scenarists=scen_names, actors=actor_names)
+        movie = Moive(m_id=movie_id, name=movie_name, year=year_int, directors=director_names, scenarists=scen_names,
+                      actors=actor_names)
         movie['style'] = " / ".join(types)
         movie['releaseDate'] = " / ".join(release_dates)
         movie['area'] = area[1:]  # 移除最前面的空格
@@ -250,7 +250,7 @@ class QuotesSpider(scrapy.Spider):
         #     director = Scenarist(d_id=director_id, name=director_name)
         # else:
         #     return
-        
+
         all_info_li_html = response.xpath('//div[@class="info"]/ul/li')
         for li in all_info_li_html:
             li_name = li.css('span::text').get()
@@ -261,50 +261,91 @@ class QuotesSpider(scrapy.Spider):
             elif li_name == "星座":
                 director['zodiac'] = li_value
             elif li_name == "出生日期":
-                director['livingTime'] = li_value
-                li_value = re.sub(r"[+]", "", li_value)
-                # 1925年08月29日 形式
-                dateString = re.sub(r"[^0-9]", "-", li_value)
-                dateString = dateString[:-1]
-                if len(dateString) == 4:
-                    # 1925年 形式
-                    datetime_obj = datetime.strptime(dateString, '%Y')
-                elif len(dateString) == 7:
-                    # 1963年04月 形式
-                    datetime_obj = datetime.strptime(dateString, '%Y-%m')
-                else:
-                    datetime_obj = datetime.strptime(dateString, '%Y-%m-%d')
-                director['birthday'] = time.mktime(datetime_obj.timetuple())
+                if li_value is not None:
+                    director['livingTime'] = li_value
+                    li_value = re.sub(r"[+]", "", li_value)  # 移除值中的所有+号
+                    # 1925年08月29日 形式
+                    dateString = re.sub(r"[^0-9]", "-", li_value)  # 将所有的非数字转为-
+                    if dateString[0] is '-':
+                        dateString = dateString[1:]
+                    if dateString[-1] is '-':
+                        dateString = dateString[:-1]
+
+                    datetime_obj = None
+                    try:
+                        datetime_obj = datetime.strptime(dateString, '%Y-%m-%d')
+                    except ValueError as e:
+                        try:
+                            datetime_obj = datetime.strptime(dateString, '%Y-%m')
+                        except ValueError:
+                            try:
+                                datetime_obj = datetime.strptime(dateString, '%Y')
+                            except ValueError:
+                                print("Not found correct format for datetime")
+                    if datetime_obj is not None:
+                        director['birthday'] = time.mktime(datetime_obj.timetuple())
             elif li_name == "生卒日期":
                 director['livingTime'] = li_value
-                li_value = re.sub(r"[ +]", "", li_value)
+                li_value = re.sub(r"[+]", "", li_value)
                 # +1903年12月12日 至 +1963年12月12日 及 1956年09月12日 至 2003年04月01日 形式 1890年09月30日 至 1980年05月08日
                 dateStrArray = li_value.split('至')
-                dateRawString1 = dateStrArray[0]
-                dateRawString2 = dateStrArray[1]
-                dateString1 = re.sub(r"[^0-9]", "-", dateRawString1)
-                dateString2 = re.sub(r"[^0-9]", "-", dateRawString2)
-                dateString1 = dateString1[0:-1]
-                dateString2 = dateString2[0:-1]
-                if len(dateString1) == 7:
-                    datetime_object1 = datetime.strptime(dateString1, '%Y-%m')
-                    datetime_object2 = datetime.strptime(dateString2, '%Y-%m')
-                else:
-                    datetime_object1 = datetime.strptime(dateString1, '%Y-%m-%d')
-                    datetime_object2 = datetime.strptime(dateString2, '%Y-%m-%d')
-                min_day = datetime(1900, 1, 1)
-                if datetime_object1 < min_day:
-                    epoch = datetime(1970, 1, 1)
-                    birthday_diff = datetime_object1-epoch
-                    leaveday_diff = datetime_object2-epoch
-                    birthday = birthday_diff.total_seconds()
-                    leaveday = leaveday_diff.total_seconds()
-                else:
-                    birthday = time.mktime(datetime_object1.timetuple())
-                    leaveday = time.mktime(datetime_object2.timetuple())
-                director['birthday'] = birthday
-                director['leaveday'] = leaveday
+                bornRawString = dateStrArray[0]
+                leaveRawString = dateStrArray[1]
+                bornDateString = re.sub(r"[^0-9]", "-", bornRawString)
+                leaveDateString = re.sub(r"[^0-9]", "-", leaveRawString)
 
+                if bornDateString[0] is '-':
+                    bornDateString = bornDateString[1:]
+                if bornDateString[-1] is '-':
+                    bornDateString = bornDateString[:-1]
+
+                if leaveDateString[0] is '-':
+                    leaveDateString = leaveDateString[1:]
+                if leaveDateString[-1] is '-':
+                    leaveDateString = leaveDateString[:-1]
+
+                bornDatetime = None
+                leaveDatetime = None
+                try:
+                    bornDatetime = datetime.strptime(bornDateString, '%Y-%m-%d')
+                except ValueError as e:
+                    try:
+                        bornDatetime = datetime.strptime(bornDateString, '%Y-%m')
+                    except ValueError:
+                        try:
+                            bornDatetime = datetime.strptime(bornDateString, '%Y')
+                        except ValueError:
+                            print("Not found correct format for datetime")
+
+                try:
+                    leaveDatetime = datetime.strptime(leaveDateString, '%Y-%m-%d')
+                except ValueError as e:
+                    try:
+                        leaveDatetime = datetime.strptime(leaveDateString, '%Y-%m')
+                    except ValueError:
+                        try:
+                            leaveDatetime = datetime.strptime(leaveDateString, '%Y')
+                        except ValueError:
+                            print("Not found correct format for datetime")
+
+                min_day = datetime(1900, 1, 1)
+                if bornDatetime is not None:
+                    if bornDatetime < min_day:
+                        epoch = datetime(1970, 1, 1)
+                        bornday_diff = bornDatetime - epoch
+                        birthday = bornday_diff.total_seconds()
+                    else:
+                        birthday = time.mktime(bornDatetime.timetuple())
+                    director['birthday'] = birthday
+
+                if leaveDatetime is not None:
+                    if leaveDatetime < min_day:
+                        epoch = datetime(1970, 1, 1)
+                        leaveday_diff = leaveDatetime - epoch
+                        leaveday = leaveday_diff.total_seconds()
+                    else:
+                        leaveday = time.mktime(leaveDatetime.timetuple())
+                    director['leaveday'] = leaveday
             elif li_name == "出生地":
                 director['birthplace'] = li_value
             elif li_name == "职业":

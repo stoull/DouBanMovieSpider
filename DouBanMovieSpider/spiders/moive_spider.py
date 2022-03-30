@@ -208,6 +208,12 @@ class QuotesSpider(scrapy.Spider):
         movie['posterUrl'] = posterUrl
         movie['iconUrl'] = iconUrl
 
+        # 解析 喜欢这部电影的人也喜欢 · · · · · ·
+
+        # 解析 短评
+
+        # 解析 影评
+
         imageItem = ImageItem()
         imageItem['image_urls'] = [posterUrl, ]
         yield imageItem
@@ -242,14 +248,6 @@ class QuotesSpider(scrapy.Spider):
         # res_Type = 'Actor' #  response.meta.get('type')
 
         director = Celebrity(type=res_Type, movie_id=movie_id, d_id=director_id, name=director_name)
-        # if res_Type == 'Director':
-        #     director = Celebrity(d_id=director_id, name=director_name)
-        # elif res_Type == 'Actor':
-        #     director = Actor(d_id=director_id, name=director_name)
-        # elif res_Type == 'Scenarist':
-        #     director = Scenarist(d_id=director_id, name=director_name)
-        # else:
-        #     return
 
         all_info_li_html = response.xpath('//div[@class="info"]/ul/li')
         for li in all_info_li_html:

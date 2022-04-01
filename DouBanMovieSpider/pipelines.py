@@ -11,7 +11,7 @@ from itemadapter import ItemAdapter
 from scrapy.pipelines.images import ImagesPipeline
 from scrapy.exceptions import DropItem
 
-from DouBanMovieSpider.items import Moive, Celebrity
+from DouBanMovieSpider.items import Movie, Celebrity, MovieBriefItem, HotComment, Review
 from DouBanMovieSpider.database import DBManager
 
 class DoubanmoviespiderPipeline:
@@ -36,10 +36,19 @@ class DoubanmoviespiderPipeline:
         for field in item.fields:
             item.setdefault(field, None)
 
-        if isinstance(item, Moive):
-            self.db.insertMoiveItem(item)
+        if isinstance(item, Movie):
+            self.db.insertMovieItem(item)
         elif isinstance(item, Celebrity):
             self.db.insertCelerbrityItem(item)
+        elif isinstance(item, MovieBriefItem):
+            if item['location_type'] == 'movie':
+                self.db.insertBriefMovieItem(item)
+            elif item['location_type'] == 'celebrity':
+                self.db.forceInsertBriefMovieItem(item)
+        elif isinstance(item, HotComment):
+            self.db.insertHotCommentItem(item)
+        elif isinstance(item, Review):
+            self.db.insertReviewItem(item)
         return item
 
 

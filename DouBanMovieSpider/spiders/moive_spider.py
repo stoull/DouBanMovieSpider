@@ -8,7 +8,7 @@ from datetime import datetime
 import logging
 from scrapy.utils.log import configure_logging
 
-from DouBanMovieSpider.items import Moive, Celebrity, ImageItem
+from DouBanMovieSpider.items import Movie, Celebrity, HotComment, Review, MovieBriefItem, ImageItem
 from DouBanMovieSpider.database import DBManager
 
 
@@ -26,7 +26,67 @@ class QuotesSpider(scrapy.Spider):
 
     def start_requests(self):
         urls = [
-            'https://movie.douban.com/celebrity/1337634/',
+            'https://movie.douban.com/subject/4074216/',
+            'https://movie.douban.com/subject/26582012/',
+            'https://movie.douban.com/subject/10741871/',
+            'https://movie.douban.com/subject/30326966/',
+            'https://movie.douban.com/subject/26662337/',
+            'https://movie.douban.com/subject/5969394/',
+            'https://movie.douban.com/subject/26676478/',
+            'https://movie.douban.com/subject/35185752/',
+            'https://movie.douban.com/subject/6412608/',
+            'https://movie.douban.com/subject/1292281/',
+            'https://movie.douban.com/subject/30196877/',
+            'https://movie.douban.com/subject/1296636/',
+            'https://movie.douban.com/subject/11584019/',
+            'https://movie.douban.com/subject/1293318/',
+            'https://movie.douban.com/subject/1291561/',
+            'https://movie.douban.com/subject/1308807/',
+            'https://movie.douban.com/subject/1439204/',
+            'https://movie.douban.com/subject/1291588/',
+            'https://movie.douban.com/subject/1439205/',
+            'https://movie.douban.com/subject/1293572/',
+            'https://movie.douban.com/subject/23338330/',
+            'https://movie.douban.com/subject/5160385/',
+            'https://movie.douban.com/subject/35258381/',
+            'https://movie.douban.com/subject/1308843/',
+            'https://movie.douban.com/subject/2076181/',
+            'https://movie.douban.com/subject/30459571/',
+            'https://movie.douban.com/subject/1889243/',
+            'https://movie.douban.com/subject/3073124/',
+            'https://movie.douban.com/subject/3001114/',
+            'https://movie.douban.com/subject/3541415/',
+            'https://movie.douban.com/subject/1292332/',
+            'https://movie.douban.com/subject/27200012/',
+            'https://movie.douban.com/subject/1294183/',
+            'https://movie.douban.com/subject/1296794/',
+            'https://movie.douban.com/subject/1292523/',
+            'https://movie.douban.com/subject/1293702/',
+            'https://movie.douban.com/subject/1304643/',
+            'https://movie.douban.com/subject/1298070/',
+            'https://movie.douban.com/subject/1315574/',
+            'https://movie.douban.com/subject/1418192/',
+            'https://movie.douban.com/subject/3227410/',
+            'https://movie.douban.com/subject/6311303/',
+            'https://movie.douban.com/subject/1291571/',
+            'https://movie.douban.com/subject/1291572/',
+            'https://movie.douban.com/subject/1291552/',
+            'https://movie.douban.com/subject/1966182/',
+            'https://movie.douban.com/subject/11606328/',
+            'https://movie.douban.com/subject/2973079/',
+            'https://movie.douban.com/subject/1291843/',
+            'https://movie.douban.com/subject/1304141/',
+            'https://movie.douban.com/subject/1302467/',
+            'https://movie.douban.com/subject/34801038/',
+            'https://movie.douban.com/subject/1301445/',
+            'https://movie.douban.com/subject/1295280/',
+            'https://movie.douban.com/subject/3642835/',
+            'https://movie.douban.com/subject/1300868/',
+            'https://movie.douban.com/subject/1293792/',
+            'https://movie.douban.com/subject/1297929/',
+            'https://movie.douban.com/subject/1299153/',
+            'https://movie.douban.com/subject/11803087/',
+            'https://movie.douban.com/subject/3771562/',
         ]
 
         for url in urls:
@@ -52,6 +112,7 @@ class QuotesSpider(scrapy.Spider):
     def parseMovie(self, response):
         movie_id = response.url.split('/')[4]
 
+        # 解析导演
         director_names = ""
         dire_info_html = response.xpath('//div[@id="info"]/span')[0].css('a')
         for dire_html in dire_info_html:
@@ -63,7 +124,7 @@ class QuotesSpider(scrapy.Spider):
                     director_names = director_names + ", " + dire_name
                 else:
                     director_names = dire_name
-                if not self.db.isDirectorExist(dire_id):
+                if not self.db.isCelebrityExist(dire_id):
                     yield response.follow(dire_path, callback=self.parseCelebrity,
                                           meta={'movie_id': movie_id, 'type': 'Director'}, dont_filter=True)
                 else:
@@ -74,7 +135,7 @@ class QuotesSpider(scrapy.Spider):
                 else:
                     director_names = dire_name
 
-        # 编剧
+        # 解析编剧
         scen_names = ""
         scen_info_html = response.xpath('//div[@id="info"]/span')[1].css('a')
         for scen_html in scen_info_html:
@@ -86,7 +147,7 @@ class QuotesSpider(scrapy.Spider):
                     scen_names = scen_names + ", " + scen_name
                 else:
                     scen_names = scen_name
-                if not self.db.isScenaristExist(scen_id):
+                if not self.db.isCelebrityExist(scen_id):
                     yield response.follow(scen_path, callback=self.parseCelebrity,
                                           meta={'movie_id': movie_id, 'type': 'Scenarist'}, dont_filter=True)
                 else:
@@ -97,7 +158,7 @@ class QuotesSpider(scrapy.Spider):
                 else:
                     scen_names = scen_name
 
-        # # 演员
+        # 解析演员
         actor_names = ""
         actor_info_html = response.xpath('//div[@id="info"]/span')[2].css('a')
         maximum_count = 0  # The maximum acotors to crawl
@@ -111,7 +172,7 @@ class QuotesSpider(scrapy.Spider):
                         actor_names = actor_names + ", " + actor_name
                     else:
                         actor_names = actor_name
-                    if not self.db.isActorExist(actor_id):
+                    if not self.db.isCelebrityExist(actor_id):
                         yield response.follow(actor_path, callback=self.parseCelebrity,
                                               meta={'movie_id': movie_id, 'type': 'Actor'})
                     else:
@@ -192,35 +253,102 @@ class QuotesSpider(scrapy.Spider):
         iconUrl = response.xpath('//img[@rel="v:image"]').xpath('@src').get()
         posterUrl = "https://img9.doubanio.com/view/photo/l/public/" + iconUrl.split('/')[-1]
 
-        movie = Moive(m_id=movie_id, name=movie_name, year=year_int, directors=director_names, scenarists=scen_names,
+        movie = Movie(m_id=movie_id, name=movie_name, year=year_int, directors=director_names, scenarists=scen_names,
                       actors=actor_names)
         movie['style'] = " / ".join(types)
-        movie['releaseDate'] = " / ".join(release_dates)
+        movie['release_date'] = " / ".join(release_dates)
         movie['area'] = area[1:]  # 移除最前面的空格
         movie['language'] = languages[1:]  # 移除最前面的空格
         movie['length'] = int(lenght)
-        movie['otherNames'] = otherNames[1:]  # 移除最前面的空格
+        movie['other_names'] = otherNames[1:]  # 移除最前面的空格
         movie['score'] = score_float
-        movie['ratingPeople'] = ratingPeople_int
+        movie['rating_number'] = ratingPeople_int
         movie['synopsis'] = synopsisStr
         movie['imdb'] = imdb[1:]  # 移除最前面的空格
-        movie['doubanUrl'] = doubanUrl
-        movie['posterUrl'] = posterUrl
-        movie['iconUrl'] = iconUrl
+        movie['poster_name'] = iconUrl.split('/')[-1]
+        yield movie
 
         # 解析 喜欢这部电影的人也喜欢 · · · · · ·
+        recommendations_html = response.xpath('//div[@id="recommendations"]/div/dl')
+        for recom_html in recommendations_html:
+            r_movie_url = recom_html.xpath('dt/a/@href').get()
+            recom_movie_id = int(r_movie_url.split('/')[-2])
+            r_movie_name = recom_html.xpath('dt/a/img/@alt').get()
+
+            if self.db.isBriefMovieExist(recom_movie_id):
+                print(f'BriefMovieExist: {r_movie_name} id: {recom_movie_id}')
+            else:
+                r_movie_imgUrl = recom_html.xpath('dt/a/img/@src').get()
+                r_movie_poster_name = r_movie_imgUrl.split('/')[-1]
+                r_movie_postUrl = "https://img9.doubanio.com/view/photo/l/public/" + r_movie_poster_name
+                response.xpath('//div[@id="recommendations"]/div/dl')[0].xpath('dt/a/img/@src').get()
+
+                briefMovieItem = MovieBriefItem()
+                briefMovieItem['d_id'] = recom_movie_id
+                briefMovieItem['name'] = r_movie_name
+                briefMovieItem['location_type'] = 'movie'
+                briefMovieItem['movie_id'] = movie_id
+                briefMovieItem['poster_name'] = r_movie_poster_name
+                yield briefMovieItem
+
+                if r_movie_postUrl and len(r_movie_postUrl) > 6:
+                    if 'movie_default_large.png' in r_movie_postUrl:
+                        pass
+                    else:
+                        imageItem = ImageItem()
+                        imageItem['image_urls'] = [r_movie_postUrl, ]
+                        yield imageItem
 
         # 解析 短评
+        hot_comments_html = response.xpath('//div[@id="hot-comments"]/div')
+        for hot_comment_html in hot_comments_html:
+            hot_com_id = int(hot_comment_html.attrib['data-cid'])
+            hot_commentor_id = \
+            hot_comment_html.xpath('div/h3').xpath('span[@class="comment-info"]/a/@href').get().split('/')[-1]
+            hot_commentor_name = hot_comment_html.xpath('div/h3').xpath('span[@class="comment-info"]/a/text()').get()
+            hot_com_content = hot_comment_html.xpath('div/p/span/text()').get()
+
+            hot_comment_item = HotComment()
+            hot_comment_item['d_id'] = hot_com_id
+            hot_comment_item['movie_id'] = int(movie_id)
+            hot_comment_item['content'] = hot_com_content
+            hot_comment_item['reviewer_name'] = hot_commentor_name
+            hot_comment_item['reviewer_id'] = hot_commentor_id
+            yield hot_comment_item
 
         # 解析 影评
+        reviews_html = response.xpath('//div[@class="main review-item"]')
+        for review_html in reviews_html:
+            review_url = review_html.xpath('div/h2/a/@href').get()
+            review_id = int(review_url.split('/')[-2])
+            review_title = review_html.xpath('div/h2/a/text()').get()
+            review_short = review_html.xpath('div/div/div/text()').getall()
+            reviewer_url = review_html.xpath('header/a/@href').get()
+            reviewer_names = review_html.xpath('header/a/text()').getall()
+            if reviewer_url is not None:
+                reviewer_id = reviewer_url.split('/')[-2]
+            if len(reviewer_names) > 0:
+                reviewer_name = reviewer_names[-1]
 
-        imageItem = ImageItem()
-        imageItem['image_urls'] = [posterUrl, ]
-        yield imageItem
+            review_item = Review()
+            review_item['d_id'] = review_id
+            review_item['movie_id'] = int(movie_id)
+            review_item['title'] = review_title
+            if len(review_short) > 0:
+                review_shortString = ''.join(review_short)
+                review_shortString = re.sub(r"[\n\t\s:]*", "", review_shortString)  # 移除值中的所有空格及换行
+                review_item['content_short'] = review_shortString
+            review_item['reviewer_name'] = reviewer_name
+            review_item['reviewer_id'] = reviewer_id
+            yield review_item
 
-        # https://docs.scrapy.org/en/latest/topics/request-response.html
-        # print(f'movie 对象: {movie}')
-        yield movie
+        if posterUrl and len(posterUrl) > 6:
+            if 'movie_default_large.png' in posterUrl:
+                pass
+            else:
+                imageItem = ImageItem()
+                imageItem['image_urls'] = [posterUrl, ]
+                yield imageItem
 
     # 解析导演信息
     def parseCelebrity(self, response):
@@ -249,6 +377,16 @@ class QuotesSpider(scrapy.Spider):
 
         director = Celebrity(type=res_Type, movie_id=movie_id, d_id=director_id, name=director_name)
 
+        director['is_director'] = False
+        director['is_scenarist'] = False
+        director['is_actor'] = False
+        if res_Type == 'Director':
+            director['is_director'] = True
+        elif res_Type == 'Scenarist':
+            director['is_scenarist'] = True
+        elif res_Type == 'Actor':
+            director['is_actor'] = True
+
         all_info_li_html = response.xpath('//div[@class="info"]/ul/li')
         for li in all_info_li_html:
             li_name = li.css('span::text').get()
@@ -260,13 +398,13 @@ class QuotesSpider(scrapy.Spider):
                 director['zodiac'] = li_value
             elif li_name == "出生日期":
                 if li_value is not None:
-                    director['livingTime'] = li_value
+                    director['living_time'] = li_value
                     li_value = re.sub(r"[+]", "", li_value)  # 移除值中的所有+号
                     # 1925年08月29日 形式
                     dateString = re.sub(r"[^0-9]", "-", li_value)  # 将所有的非数字转为-
-                    if dateString[0] is '-':
+                    if dateString[0] == '-':
                         dateString = dateString[1:]
-                    if dateString[-1] is '-':
+                    if dateString[-1] == '-':
                         dateString = dateString[:-1]
 
                     datetime_obj = None
@@ -283,7 +421,7 @@ class QuotesSpider(scrapy.Spider):
                     if datetime_obj is not None:
                         director['birthday'] = time.mktime(datetime_obj.timetuple())
             elif li_name == "生卒日期":
-                director['livingTime'] = li_value
+                director['living_time'] = li_value
                 li_value = re.sub(r"[+]", "", li_value)
                 # +1903年12月12日 至 +1963年12月12日 及 1956年09月12日 至 2003年04月01日 形式 1890年09月30日 至 1980年05月08日
                 dateStrArray = li_value.split('至')
@@ -292,14 +430,14 @@ class QuotesSpider(scrapy.Spider):
                 bornDateString = re.sub(r"[^0-9]", "-", bornRawString)
                 leaveDateString = re.sub(r"[^0-9]", "-", leaveRawString)
 
-                if bornDateString[0] is '-':
+                if bornDateString[0] == '-':
                     bornDateString = bornDateString[1:]
-                if bornDateString[-1] is '-':
+                if bornDateString[-1] == '-':
                     bornDateString = bornDateString[:-1]
 
-                if leaveDateString[0] is '-':
+                if leaveDateString[0] == '-':
                     leaveDateString = leaveDateString[1:]
-                if leaveDateString[-1] is '-':
+                if leaveDateString[-1] == '-':
                     leaveDateString = leaveDateString[:-1]
 
                 bornDatetime = None
@@ -343,7 +481,7 @@ class QuotesSpider(scrapy.Spider):
                         leaveday = leaveday_diff.total_seconds()
                     else:
                         leaveday = time.mktime(leaveDatetime.timetuple())
-                    director['leaveday'] = leaveday
+                    director['left_day'] = leaveday
             elif li_name == "出生地":
                 director['birthplace'] = li_value
             elif li_name == "职业":
@@ -356,9 +494,53 @@ class QuotesSpider(scrapy.Spider):
                 director['family'] = li_value
             elif li_name == "imdb编号":
                 director['imdb'] = li.css('a::text').get()
-        director['photoUrl'] = photoUrl
-        imageItem = ImageItem()
-        imageItem['image_urls'] = [photoUrl, ]
-        yield imageItem
         director['intro'] = intro
+        director['portrait_name'] = photoUrl.split('/')[-1]
         yield director
+
+        if photoUrl and len(photoUrl) > 6:
+            if 'movie_default_large.png' in photoUrl:
+                pass
+            else:
+                imageItem = ImageItem()
+                imageItem['image_urls'] = [photoUrl, ]
+                yield imageItem
+
+        # 解析最受好评的5部作品
+        best_movies_html = response.xpath('//div[@id="best_movies"]').xpath('div[@class="bd"]/ul/li')
+        if len(best_movies_html) > 0:
+            for best_movie_html in best_movies_html:
+                best_movie_id = int(best_movie_html.xpath('div[@class="info"]/a/@href').get().split('/')[-2])
+                best_movie_postName = best_movie_html.xpath('div[@class="pic"]/a/img/@src').get().split('/')[-1]
+                best_movie_postUrl = "https://img9.doubanio.com/view/photo/l/public/" + best_movie_postName
+                best_movie_name = best_movie_html.xpath('div[@class="info"]/a/text()').get()
+                best_movie_score = best_movie_html.xpath('div[@class="info"]/em/text()').get()
+                if best_movie_score is None:
+                    score_float = 0
+                else:
+                    score_float = float(best_movie_score)
+                best_movie_score = score_float
+                best_movie_year = int(best_movie_html.xpath('div[@class="info"]/div/text()').get())
+
+                best_movie_item = MovieBriefItem()
+                best_movie_item['d_id'] = best_movie_id
+                best_movie_item['name'] = best_movie_name
+                best_movie_item['score'] = best_movie_score
+                best_movie_item['year'] = best_movie_year
+                best_movie_item['poster_name'] = best_movie_postName
+                best_movie_item['location_type'] = 'celebrity'
+                best_movie_item['celebrity_id'] = int(director_id)
+
+                if not self.db.isBriefMovieExist(best_movie_id):
+                    yield best_movie_item
+                else:
+                    yield best_movie_item
+
+                if res_Type == 'Director':
+                    if best_movie_postUrl and len(best_movie_postUrl) > 6:
+                        if 'movie_default_large.png' in best_movie_postUrl:
+                            pass
+                        else:
+                            imageItem = ImageItem()
+                            imageItem['image_urls'] = [best_movie_postUrl, ]
+                            yield imageItem

@@ -26,11 +26,14 @@ class QuotesSpider(scrapy.Spider):
 
     def start_requests(self):
         urls = [
-            'https://movie.douban.com/subject/1291543/',
-            'https://movie.douban.com/subject/27079318/',
-            'https://movie.douban.com/subject/4719384/',
-            'https://movie.douban.com/subject/27172891/',
-            'https://movie.douban.com/subject/26752088/',
+            'https://movie.douban.com/subject/1291546/',
+            'https://movie.douban.com/subject/1292720/',
+            'https://movie.douban.com/subject/1295644/',
+            'https://movie.douban.com/subject/1292063/',
+            'https://movie.douban.com/subject/1292064/',
+            'https://movie.douban.com/subject/2131459/',
+            'https://movie.douban.com/subject/1307914/',
+            'https://movie.douban.com/subject/25662329/',
         ]
 
         for url in urls:
@@ -133,7 +136,10 @@ class QuotesSpider(scrapy.Spider):
         # 解析电影信息
         movie_name = response.xpath('//span[@property="v:itemreviewed"]/text()').get()
         year_String = response.xpath('//span[@class="year"]/text()').get()
-        year_int = int(re.sub('[()]', '', year_String))  # 移除（）并转成Int
+        if year_String:
+            year_int = int(re.sub('[()]', '', year_String))  # 移除（）并转成Int
+        else:
+            year_int = 0
         types = response.xpath('//span[@property="v:genre"]/text()').getall()
         release_dates = response.xpath('//span[@property="v:initialReleaseDate"]/text()').getall()
         info_br_sibling_html = response.xpath('//div[@id="info"]/br/following-sibling::text()').getall()
@@ -163,7 +169,6 @@ class QuotesSpider(scrapy.Spider):
         if lenght is None:
             if "片长" in all_title_string:
                 lenght = info_br_sibling_html[-6]
-                print(f"xxxxxxx : {lenght}")
                 if lenght is not None:
                     lenght = re.findall(r'\d+', lenght)[0]
                 else:

@@ -90,3 +90,8 @@ class ImageItem(scrapy.Item):
     image_urls = scrapy.Field()
     images = scrapy.Field()
     image_paths = scrapy.Field()
+
+class Doubantop250Item(scrapy.Item):
+    name = scrapy.Field()
+    url = scrapy.Field()
+    pass

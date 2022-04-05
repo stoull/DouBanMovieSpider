@@ -21,34 +21,38 @@ class DoubanmoviespiderPipeline:
         self.db_path = self.db.db_file
 
     def open_spider(self, spider):
-        # self.file = open('items.json', 'w')
+        if spider.name == 'top_250':
+            self.file = open('items.json', 'w')
         pass
 
     def close_spider(self, spider):
-        # self.file.close()
+        if spider.name == 'top_250':
+            self.file.close()
         pass
 
     def process_item(self, item, spider):
-        line = json.dumps(ItemAdapter(item).asdict()) + "\n"
-        # self.file.write(line)
+        if spider.name == 'top_250':
+            # line = json.dumps(ItemAdapter(item).asdict()) + "\n"
+            movie_line = item['name'] + ":  " + item['url'] + '\n'
+            self.file.write(movie_line)
+        else:
+            # set default values
+            for field in item.fields:
+                item.setdefault(field, None)
 
-        # set default values
-        for field in item.fields:
-            item.setdefault(field, None)
-
-        if isinstance(item, Movie):
-            self.db.insertMovieItem(item)
-        elif isinstance(item, Celebrity):
-            self.db.insertCelerbrityItem(item)
-        elif isinstance(item, MovieBriefItem):
-            if item['location_type'] == 'movie':
-                self.db.insertBriefMovieItem(item)
-            elif item['location_type'] == 'celebrity':
-                self.db.forceInsertBriefMovieItem(item)
-        elif isinstance(item, HotComment):
-            self.db.insertHotCommentItem(item)
-        elif isinstance(item, Review):
-            self.db.insertReviewItem(item)
+            if isinstance(item, Movie):
+                self.db.insertMovieItem(item)
+            elif isinstance(item, Celebrity):
+                self.db.insertCelerbrityItem(item)
+            elif isinstance(item, MovieBriefItem):
+                if item['location_type'] == 'movie':
+                    self.db.insertBriefMovieItem(item)
+                elif item['location_type'] == 'celebrity':
+                    self.db.forceInsertBriefMovieItem(item)
+            elif isinstance(item, HotComment):
+                self.db.insertHotCommentItem(item)
+            elif isinstance(item, Review):
+                self.db.insertReviewItem(item)
         return item
 
 

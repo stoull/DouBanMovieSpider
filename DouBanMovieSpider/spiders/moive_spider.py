@@ -26,14 +26,7 @@ class QuotesSpider(scrapy.Spider):
 
     def start_requests(self):
         urls = [
-            'https://movie.douban.com/subject/1291546/',
-            'https://movie.douban.com/subject/1292720/',
-            'https://movie.douban.com/subject/1295644/',
-            'https://movie.douban.com/subject/1292063/',
-            'https://movie.douban.com/subject/1292064/',
-            'https://movie.douban.com/subject/2131459/',
-            'https://movie.douban.com/subject/1307914/',
-            'https://movie.douban.com/subject/25662329/',
+            'https://movie.douban.com/subject/1794723/'
         ]
 
         for url in urls:
@@ -169,6 +162,9 @@ class QuotesSpider(scrapy.Spider):
         if lenght is None:
             if "片长" in all_title_string:
                 lenght = info_br_sibling_html[-6]
+                lenght = re.sub(r"[\n\t()| ·]*", "", lenght)
+                if len(lenght) == 0:
+                    lenght = info_br_sibling_html[-4]
                 if lenght is not None:
                     lenght = re.findall(r'\d+', lenght)[0]
                 else:

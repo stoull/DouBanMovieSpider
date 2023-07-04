@@ -163,9 +163,13 @@ class QuotesSpider(scrapy.Spider):
             if "片长" in all_title_string:
                 lenght = info_br_sibling_html[-6]
                 lenght = re.sub(r"[\n\t()| ·]*", "", lenght)
-                if len(lenght) == 0:
+                hasNumbers = bool(re.search(r'\d', lenght))
+                if hasNumbers == False:
                     lenght = info_br_sibling_html[-4]
-                if lenght is not None:
+                    hasNumbers = bool(re.search(r'\d', lenght))
+                    if hasNumbers == False:
+                        lenght = info_br_sibling_html[-2]
+                if hasNumbers:
                     lenght = re.findall(r'\d+', lenght)[0]
                 else:
                     lenght = '0'

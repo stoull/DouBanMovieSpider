@@ -26,13 +26,45 @@ class QuotesSpider(scrapy.Spider):
 
     def start_requests(self):
         urls = [
-            'https://movie.douban.com/subject/1794723/'
+            'https://movie.douban.com/subject/35774719/',
+            'https://movie.douban.com/subject/5968334/',
+            'https://movie.douban.com/subject/34853409/',
+            'https://movie.douban.com/subject/19945757/',
+            'https://movie.douban.com/subject/10876425/',
+            'https://movie.douban.com/subject/1300551/',
+            'https://movie.douban.com/subject/26794701/',
+            'https://movie.douban.com/subject/34941536/',
+            'https://movie.douban.com/subject/26780004/',
+            'https://movie.douban.com/subject/26884826/',
+            'https://movie.douban.com/subject/1299238/',
+            'https://movie.douban.com/subject/1291865/',
+            'https://movie.douban.com/subject/25822430/',
+            'https://movie.douban.com/subject/35801819/',
+            'https://movie.douban.com/subject/1292238/',
+            'https://movie.douban.com/subject/3742993/',
+            'https://movie.douban.com/subject/30390700/',
+            'https://movie.douban.com/subject/1889053/',
+            'https://movie.douban.com/subject/5208150/',
+            'https://movie.douban.com/subject/35310153/',
+            'https://movie.douban.com/subject/1299795/',
+            'https://movie.douban.com/subject/1292850/',
+            'https://movie.douban.com/subject/1329957/',
+            'https://movie.douban.com/subject/1292206/',
+            'https://movie.douban.com/subject/3683409/',
+            'https://movie.douban.com/subject/1292212/',
+            'https://movie.douban.com/subject/25766754/',
+            'https://movie.douban.com/subject/6860160/',
+            'https://movie.douban.com/subject/3792848/',
+            'https://movie.douban.com/subject/25955491/',
+            'https://movie.douban.com/subject/4066125/',
+            'https://movie.douban.com/subject/4811774/',
         ]
 
         for url in urls:
             # yield  scrapy.Request(url=url, callback=self.parseIpLocation)
             m_id = int(url.split('/')[4])
             if not self.db.isMovieExist(m_id):
+                # yield scrapy.Request(url=url, meta={"proxy": "http://13.57.200.6:5000"}, callback=self.parseMovie)
                 yield scrapy.Request(url=url, callback=self.parseMovie)
             else:
                 print(f"Movie Does Exist: {url}")

@@ -10,8 +10,10 @@
 
 ### The result files crawl ###
 Images
+Images.zip
 movie.db
-movie_db
+movie_db*
+movie_id_list.txt
 scrapy_log.txt
 # Icon must end with two \r
 Icon

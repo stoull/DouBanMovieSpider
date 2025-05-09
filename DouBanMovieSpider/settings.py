@@ -37,7 +37,8 @@ DOWNLOAD_DELAY = 10
 #CONCURRENT_REQUESTS_PER_IP = 16
 
 # Disable cookies (enabled by default)
-COOKIES_ENABLED = False
+# COOKIES_ENABLED = False
+COOKIES_ENABLED = True
 
 # Disable Telnet Console (enabled by default)
 #TELNETCONSOLE_ENABLED = False
@@ -58,7 +59,7 @@ COOKIES_ENABLED = False
 # See https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
 DOWNLOADER_MIDDLEWARES = {
    'scrapy.downloadermiddlewares.retry.RetryMiddleware': None,
-   'DouBanMovieSpider.middlewares.DoubanmoviespiderDownloaderMiddleware': 350
+   'DouBanMovieSpider.middlewares.DoubanmoviespiderDownloaderMiddleware': 800
 }
 
 # Enable or disable extensions
@@ -70,7 +71,7 @@ DOWNLOADER_MIDDLEWARES = {
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
-   'DouBanMovieSpider.pipelines.DoubanmoviespiderPipeline': 300,
+   'DouBanMovieSpider.pipelines.DoubanmoviespiderPipeline': 200,
    'DouBanMovieSpider.pipelines.DoubanImagesPipeline': 300
 }
 
